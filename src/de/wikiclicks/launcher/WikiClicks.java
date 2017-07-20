@@ -5,6 +5,7 @@ import de.wikiclicks.datastructures.PersistentArticleStorage;
 import de.wikiclicks.gui.GUI;
 import de.wikiclicks.parser.WikiParser;
 import de.wikiclicks.views.View;
+import de.wikiclicks.views.ViewPieNews;
 import de.wikiclicks.views.ViewTest;
 
 import javax.swing.*;
@@ -33,7 +34,8 @@ public class WikiClicks {
         gui.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                wikiArticleStorage.close();
+                if(wikiArticleStorage != null)
+                    wikiArticleStorage.close();
             }
         });
 
@@ -42,6 +44,7 @@ public class WikiClicks {
 
     private void initViews(){
         views.add(initTestView());
+        views.add(new ViewPieNews());
     }
 
     private void initWikiArticles(String wikiPath){
@@ -70,8 +73,8 @@ public class WikiClicks {
 
     public static void main(String[] args) {
         WikiClicks wikiClicks = new WikiClicks();
-        wikiClicks.initWikiArticles("/media/storage1/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
-        System.out.println(wikiClicks.wikiArticleStorage.get("main page"));
+//        wikiClicks.initWikiArticles("/media/storage1/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
+//        System.out.println(wikiClicks.wikiArticleStorage.get("main page"));
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
