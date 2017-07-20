@@ -8,7 +8,7 @@ import java.util.Comparator;
 public class DateComparator implements Comparator<String>, Serializable {
     @Override
     public int compare(String o1, String o2) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddhhmm");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmm");
         try {
             return dateFormat.parse(o1).compareTo(dateFormat.parse(o2));
         } catch (ParseException e) {

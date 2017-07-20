@@ -1,34 +1,32 @@
 package de.wikiclicks.gui;
 
 import de.wikiclicks.gui.renderer.VisSelectRenderer;
+import de.wikiclicks.views.View;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 
-public class GUI {
-    private JFrame jFrame;
-
+public class GUI extends JFrame {
     private CardLayout cardLayout;
     private JPanel cardPanel;
 
     public GUI(){
-        jFrame = new JFrame();
-        jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        jFrame.setTitle("WikiClicks-Vis");
-        jFrame.setSize(800, 800);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setTitle("WikiClicks-Vis");
+        setSize(800, 800);
 
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
-        jFrame.add(cardPanel);
+        add(cardPanel);
 
         initGlobalButtons();
     }
 
     private void initGlobalButtons(){
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setPreferredSize(new Dimension(200, jFrame.getHeight()));
+        buttonPanel.setPreferredSize(new Dimension(200, getHeight()));
 
         String[] items = {"main", "test"};
         JList list = new JList(items);
@@ -49,10 +47,10 @@ public class GUI {
 
         buttonPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
-        jFrame.add(buttonPanel, BorderLayout.WEST);
+        add(buttonPanel, BorderLayout.WEST);
     }
 
-    public void addView(String identifier, JPanel view){
+    public void addView(String identifier, View view){
         cardPanel.add(view, identifier);
     }
 
@@ -61,6 +59,6 @@ public class GUI {
     }
 
     public void start(){
-        jFrame.setVisible(true);
+        setVisible(true);
     }
 }

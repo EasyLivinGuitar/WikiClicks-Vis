@@ -1,7 +1,6 @@
 package de.wikiclicks.datastructures;
 
 import de.wikiclicks.utils.DateComparator;
-import de.wikiclicks.utils.Serializer;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -27,6 +26,14 @@ public class WikiArticle implements Serializable{
         }
     }
 
+    public void join(WikiArticle article){
+        clickStats.putAll(article.clickStats);
+    }
+
+    public Long getClicksOnDate(String date){
+        return clickStats.getOrDefault(date, 0L);
+    }
+
     @Override
     public String toString(){
         StringBuilder builder = new StringBuilder();
@@ -43,15 +50,7 @@ public class WikiArticle implements Serializable{
         return builder.toString();
     }
 
-    public static void main(String[] args) {
-        WikiArticle article = new WikiArticle("test");
-        article.addClickStat("201509010600", 234567L);
-        article.addClickStat("201512050200", 4567L);
-        article.addClickStat("201509010100", 123456L);
-
-        byte[] serialArticle = Serializer.serialize(article);
-        WikiArticle deserialArticle = (WikiArticle) Serializer.deserialize(serialArticle);
-
-        System.out.println(deserialArticle);
+    public String getTitle() {
+        return title;
     }
 }

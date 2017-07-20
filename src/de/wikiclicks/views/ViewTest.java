@@ -28,4 +28,9 @@ public class ViewTest extends View {
         popupMenu.setLocation(x, y);
         popupMenu.setVisible(true);*/
     }
+
+    @Override
+    public String getIdentifier() {
+        return "test";
+    }
 }
