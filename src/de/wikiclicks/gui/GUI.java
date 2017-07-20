@@ -28,7 +28,7 @@ public class GUI extends JFrame {
         JPanel buttonPanel = new JPanel();
         buttonPanel.setPreferredSize(new Dimension(200, getHeight()));
 
-        String[] items = {"main", "test", "pie"};
+        String[] items = {"clicks-graph", "test", "pie"};
         JList list = new JList(items);
 
         list.addListSelectionListener(new ListSelectionListener() {

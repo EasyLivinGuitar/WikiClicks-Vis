@@ -5,6 +5,7 @@ import de.wikiclicks.datastructures.PersistentArticleStorage;
 import de.wikiclicks.gui.GUI;
 import de.wikiclicks.parser.WikiParser;
 import de.wikiclicks.views.View;
+import de.wikiclicks.views.ViewClicksGraph;
 import de.wikiclicks.views.ViewPieNews;
 import de.wikiclicks.views.ViewTest;
 
@@ -43,12 +44,13 @@ public class WikiClicks {
     }
 
     private void initViews(){
+        views.add(new ViewClicksGraph());
         views.add(initTestView());
         views.add(new ViewPieNews());
     }
 
     private void initWikiArticles(String wikiPath){
-        wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage");
+        wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage-unsorted");
 
         if(!wikiArticleStorage.isFilled()){
             File wikiDir = new File(wikiPath);
@@ -73,7 +75,7 @@ public class WikiClicks {
 
     public static void main(String[] args) {
         WikiClicks wikiClicks = new WikiClicks();
-//        wikiClicks.initWikiArticles("/media/storage1/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
+        wikiClicks.initWikiArticles("/media/storage1/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
 //        System.out.println(wikiClicks.wikiArticleStorage.get("main page"));
 
         SwingUtilities.invokeLater(new Runnable() {
