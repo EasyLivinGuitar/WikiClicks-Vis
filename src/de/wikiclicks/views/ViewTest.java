@@ -33,4 +33,9 @@ public class ViewTest extends View {
     public String getIdentifier() {
         return "test";
     }
+
+    @Override
+    public void resize() {
+
+    }
 }

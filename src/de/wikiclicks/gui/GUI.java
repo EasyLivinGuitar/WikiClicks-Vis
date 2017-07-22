@@ -15,16 +15,16 @@ public class GUI extends JFrame {
     public GUI(){
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("WikiClicks-Vis");
-        setSize(800, 800);
+        setSize(1440, 900);
 
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
         add(cardPanel);
 
-        initGlobalButtons();
+        initUIComponents();
     }
 
-    private void initGlobalButtons(){
+    private void initUIComponents(){
         JPanel buttonPanel = new JPanel();
         buttonPanel.setPreferredSize(new Dimension(200, getHeight()));
 
@@ -50,8 +50,8 @@ public class GUI extends JFrame {
         add(buttonPanel, BorderLayout.WEST);
     }
 
-    public void addView(String identifier, View view){
-        cardPanel.add(view, identifier);
+    public void addView(View view){
+        cardPanel.add(view, view.getIdentifier());
     }
 
     public void displayView(String identifier){

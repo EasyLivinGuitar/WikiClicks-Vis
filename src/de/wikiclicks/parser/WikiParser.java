@@ -56,7 +56,7 @@ public class WikiParser {
                         WikiArticle existingArticle = articleStorage.get(parsedArticle.getTitle());
 
                         if(existingArticle != null)
-                        if(parsedArticle.getClicksOnDate(date) > existingArticle.getClicksOnDate(date))
+                        if(parsedArticle.getClicksOnHour(date) > existingArticle.getClicksOnHour(date))
                             existingArticle.join(parsedArticle);
 
                         articleStorage.replaceArticle(existingArticle);

@@ -75,7 +75,7 @@ public class PersistentArticleStorage {
 
     public WikiArticle get(String title){
         try {
-            byte[] serialArticle = articleStore.get(title.getBytes());
+            byte[] serialArticle = articleStore.get(title.toLowerCase().getBytes());
 
             if(serialArticle != null){
                 return (WikiArticle) Serializer.deserialize(serialArticle);

@@ -1,13 +1,12 @@
 package de.wikiclicks.launcher;
 
-import de.wikiclicks.controller.MouseController;
+import de.wikiclicks.controller.ClicksGraphMouseController;
 import de.wikiclicks.datastructures.PersistentArticleStorage;
 import de.wikiclicks.gui.GUI;
 import de.wikiclicks.parser.WikiParser;
 import de.wikiclicks.views.View;
 import de.wikiclicks.views.ViewClicksGraph;
 import de.wikiclicks.views.ViewPieNews;
-import de.wikiclicks.views.ViewTest;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -29,7 +28,7 @@ public class WikiClicks {
 
     private GUI initGUI() {
         for(View view: views){
-            gui.addView(view.getIdentifier(), view);
+            gui.addView(view);
         }
 
         gui.addWindowListener(new WindowAdapter() {
@@ -44,13 +43,12 @@ public class WikiClicks {
     }
 
     private void initViews(){
-        views.add(new ViewClicksGraph());
-        views.add(initTestView());
+        views.add(initClicksGraphView());
         views.add(new ViewPieNews());
     }
 
     private void initWikiArticles(String wikiPath){
-        wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage-unsorted");
+        wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage");
 
         if(!wikiArticleStorage.isFilled()){
             File wikiDir = new File(wikiPath);
@@ -89,13 +87,14 @@ public class WikiClicks {
         });
     }
 
-    private View initTestView(){
-        View testView = new ViewTest();
-        MouseController controller = new MouseController(testView);
+    private View initClicksGraphView(){
+        ViewClicksGraph clicksGraph = new ViewClicksGraph(wikiArticleStorage);
 
-        testView.addMouseListener(controller);
-        testView.addMouseMotionListener(controller);
+        ClicksGraphMouseController controller = new ClicksGraphMouseController(clicksGraph);
+        clicksGraph.addMouseListener(controller);
+        clicksGraph.addMouseMotionListener(controller);
 
-        return testView;
+        return clicksGraph;
+
     }
 }

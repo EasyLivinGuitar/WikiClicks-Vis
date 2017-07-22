@@ -1,7 +1,6 @@
 package de.wikiclicks.views;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Created by vanya on 20.07.17.
@@ -15,6 +14,11 @@ public class ViewPieNews extends View {
     @Override
     public String getIdentifier() {
         return "pie";
+    }
+
+    @Override
+    public void resize() {
+
     }
 
     @Override

@@ -30,8 +30,42 @@ public class WikiArticle implements Serializable{
         clickStats.putAll(article.clickStats);
     }
 
-    public Long getClicksOnDate(String date){
+    public Long getClicksOnHour(String date){
         return clickStats.getOrDefault(date, 0L);
+    }
+
+    public Long getClicksOnDay(String dayString){
+        Long sum = 0L;
+        boolean found = false;
+
+        for(Map.Entry<String, Long> entry: clickStats.entrySet()){
+            if(entry.getKey().startsWith(dayString)){
+                found = true;
+                sum += entry.getValue();
+            }
+            else if(found){
+                break;
+            }
+        }
+
+        return sum;
+    }
+
+    public Long getMaxOfMonth(String monthString){
+        Long max = 0L;
+
+        for(Map.Entry<String, Long> entry: clickStats.entrySet()){
+            if(entry.getKey().startsWith(monthString)){
+                String day = entry.getKey().substring(0, entry.getKey().length() - 4);
+                Long clicksOnDay = getClicksOnDay(day);
+
+                if(clicksOnDay > max){
+                    max = clicksOnDay;
+                }
+            }
+        }
+
+        return max;
     }
 
     @Override
@@ -53,4 +87,14 @@ public class WikiArticle implements Serializable{
     public String getTitle() {
         return title;
     }
+
+    public String getStartDate(){
+        return clickStats.firstKey();
+    }
+
+    public String getEndDate(){
+        return clickStats.lastKey();
+    }
+
+
 }

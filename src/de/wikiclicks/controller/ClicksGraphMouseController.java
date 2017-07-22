@@ -1,15 +1,16 @@
 package de.wikiclicks.controller;
 
-import de.wikiclicks.views.View;
+import de.wikiclicks.datastructures.DataPoint;
+import de.wikiclicks.views.ViewClicksGraph;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-public class MouseController implements MouseListener, MouseMotionListener {
-    private View view;
+public class ClicksGraphMouseController implements MouseListener, MouseMotionListener {
+    private ViewClicksGraph view;
 
-    public MouseController(View view){
+    public ClicksGraphMouseController(ViewClicksGraph view){
         this.view = view;
     }
 
@@ -37,7 +38,6 @@ public class MouseController implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseExited(MouseEvent e) {
-
     }
 
     @Override
@@ -47,6 +47,13 @@ public class MouseController implements MouseListener, MouseMotionListener {
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        DataPoint point = view.getRelevantDataPoint(e.getX());
+
+        if(point != null){
+            if(point.listenForHighlighting(e.getX(), e.getY())){
+                view.repaint();
+            }
+        }
 
     }
 }
