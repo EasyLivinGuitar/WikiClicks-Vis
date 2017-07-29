@@ -1,10 +1,7 @@
 package de.wikiclicks.datastructures;
 
 import de.wikiclicks.utils.Serializer;
-import org.rocksdb.FlushOptions;
-import org.rocksdb.Options;
-import org.rocksdb.RocksDB;
-import org.rocksdb.RocksDBException;
+import org.rocksdb.*;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -132,5 +129,20 @@ public class PersistentArticleStorage {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public long size(){
+        RocksIterator iterator = articleStore.newIterator();
+        iterator.seekToFirst();
+        long count = 0;
+
+        while(iterator.isValid()){
+            count++;
+            iterator.next();
+        }
+
+        iterator.close();
+
+        return count;
     }
 }

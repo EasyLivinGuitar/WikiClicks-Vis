@@ -9,36 +9,38 @@ import java.util.TreeMap;
 public class WikiArticle implements Serializable{
     private String title;
 
-    private TreeMap<String, Long> clickStats;
+    private TreeMap<String, Long> clickStatsPerHour;
+    // TODO: click stats per day pre-calculation
+    // TODO: click stats per month pre-calculation
 
     public WikiArticle(String title){
         this.title = title;
 
-        clickStats = new TreeMap<>(new DateComparator());
+        clickStatsPerHour = new TreeMap<>(new DateComparator());
     }
 
     public void addClickStat(String date, Long clicks){
-        if(clickStats.containsKey(date)){
+        if(clickStatsPerHour.containsKey(date)){
             System.out.println("ERROR: \""+date+"\" is already contained in article \""+title+"\"");
         }
         else{
-            clickStats.put(date, clicks);
+            clickStatsPerHour.put(date, clicks);
         }
     }
 
     public void join(WikiArticle article){
-        clickStats.putAll(article.clickStats);
+        clickStatsPerHour.putAll(article.clickStatsPerHour);
     }
 
     public Long getClicksOnHour(String date){
-        return clickStats.getOrDefault(date, 0L);
+        return clickStatsPerHour.getOrDefault(date, 0L);
     }
 
     public Long getClicksOnDay(String dayString){
         Long sum = 0L;
         boolean found = false;
 
-        for(Map.Entry<String, Long> entry: clickStats.entrySet()){
+        for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
             if(entry.getKey().startsWith(dayString)){
                 found = true;
                 sum += entry.getValue();
@@ -54,7 +56,7 @@ public class WikiArticle implements Serializable{
     public Long getMaxOfMonth(String monthString){
         Long max = 0L;
 
-        for(Map.Entry<String, Long> entry: clickStats.entrySet()){
+        for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
             if(entry.getKey().startsWith(monthString)){
                 String day = entry.getKey().substring(0, entry.getKey().length() - 4);
                 Long clicksOnDay = getClicksOnDay(day);
@@ -68,13 +70,23 @@ public class WikiArticle implements Serializable{
         return max;
     }
 
+    public Long getTotalClicks(){
+        Long sum = 0L;
+
+        for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
+            sum += entry.getValue();
+        }
+
+        return sum;
+    }
+
     @Override
     public String toString(){
         StringBuilder builder = new StringBuilder();
 
         builder.append(title);
 
-        for(Map.Entry<String, Long> entry: clickStats.entrySet()){
+        for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
             builder.append("\n")
                     .append(entry.getKey())
                     .append(" : ")
@@ -89,11 +101,11 @@ public class WikiArticle implements Serializable{
     }
 
     public String getStartDate(){
-        return clickStats.firstKey();
+        return clickStatsPerHour.firstKey();
     }
 
     public String getEndDate(){
-        return clickStats.lastKey();
+        return clickStatsPerHour.lastKey();
     }
 
 
