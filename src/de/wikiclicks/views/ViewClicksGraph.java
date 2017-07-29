@@ -6,7 +6,6 @@ import de.wikiclicks.datastructures.WikiArticle;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.math.util.MathUtils;
 
-import javax.security.auth.callback.LanguageCallback;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
@@ -31,7 +30,7 @@ public class ViewClicksGraph extends View {
 
     private WikiArticle currentArticle;
 
-    private boolean isDayView = true;
+    private boolean isDayView = false;
 
     public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage){
         this.wikiArticleStorage = wikiArticleStorage;
@@ -329,7 +328,8 @@ public class ViewClicksGraph extends View {
     }
 
     @Override
-    public void resize() {
-        System.out.println("resize");
+    public void changeArticle(WikiArticle newArticle) {
+        currentArticle = newArticle;
+        repaint();
     }
 }

@@ -1,5 +1,7 @@
 package de.wikiclicks.views;
 
+import de.wikiclicks.datastructures.WikiArticle;
+
 import java.awt.*;
 
 /**
@@ -17,7 +19,7 @@ public class ViewPieNews extends View {
     }
 
     @Override
-    public void resize() {
+    public void changeArticle(WikiArticle newArticle) {
 
     }
 

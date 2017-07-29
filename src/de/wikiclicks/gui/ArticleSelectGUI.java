@@ -1,5 +1,6 @@
 package de.wikiclicks.gui;
 
+import de.wikiclicks.launcher.WikiClicks;
 import de.wikiclicks.listener.ArticleListener;
 
 import javax.imageio.ImageIO;
@@ -70,7 +71,15 @@ public class ArticleSelectGUI extends JPanel {
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                changeArticle(e.getActionCommand());
+                changeArticle(searchBar.getText());
+
+                if(WikiClicks.globalSettings.currentArticle.getTitle()
+                        .equals(searchBar.getText().toLowerCase())){
+                    System.out.println("Changed successful!");
+                }
+                else{
+                    System.out.println("Not successful!");
+                }
             }
         });
 

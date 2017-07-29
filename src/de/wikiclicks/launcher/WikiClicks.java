@@ -23,7 +23,7 @@ public class WikiClicks {
 
     private PersistentArticleStorage wikiArticleStorage;
 
-    public GlobalSettings globalSettings;
+    public static GlobalSettings globalSettings;
 
     private WikiClicks() {
         gui = new GUI();
@@ -48,7 +48,16 @@ public class WikiClicks {
         gui.getArticleSelectGUI().addArticleListener(new ArticleListener() {
             @Override
             public void articleChanged(String title) {
-                globalSettings.articleTitle = title;
+                if(wikiArticleStorage.containsTitle(title.toLowerCase())){
+                    globalSettings.currentArticle = wikiArticleStorage.get(title.toLowerCase());
+
+                    for(View view: views){
+                        view.changeArticle(globalSettings.currentArticle);
+                    }
+                }
+                else{
+                    System.out.println("ERROR: Not found \""+title+"\"");
+                }
             }
         });
 
