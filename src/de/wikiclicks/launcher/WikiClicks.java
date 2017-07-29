@@ -27,6 +27,7 @@ public class WikiClicks {
     }
 
     private GUI initGUI() {
+        System.out.print("Initialize GUI...");
         for(View view: views){
             gui.addView(view);
         }
@@ -39,15 +40,21 @@ public class WikiClicks {
             }
         });
 
+        System.out.println("Done.");
+
         return gui;
     }
 
     private void initViews(){
+        System.out.print("Initialize views...");
+
         views.add(initClicksGraphView());
         views.add(new ViewPieNews());
+        System.out.println("Done. "+views.size()+" views initialized.");
     }
 
     private void initWikiArticles(String wikiPath){
+        System.out.print("Initialize wiki articles...");
         wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage");
 
         if(!wikiArticleStorage.isFilled()){
@@ -69,12 +76,13 @@ public class WikiClicks {
                 wikiArticleStorage.setFilled();
             }
         }
+
+        System.out.println("Done. "/*+wikiArticleStorage.size()+ " articles initialized."*/);
     }
 
     public static void main(String[] args) {
         WikiClicks wikiClicks = new WikiClicks();
         wikiClicks.initWikiArticles("/media/storage1/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
-//        System.out.println(wikiClicks.wikiArticleStorage.get("main page"));
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
