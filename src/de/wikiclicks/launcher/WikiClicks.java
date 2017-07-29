@@ -1,8 +1,10 @@
 package de.wikiclicks.launcher;
 
 import de.wikiclicks.controller.ClicksGraphMouseController;
+import de.wikiclicks.datastructures.GlobalSettings;
 import de.wikiclicks.datastructures.PersistentArticleStorage;
 import de.wikiclicks.gui.GUI;
+import de.wikiclicks.listener.ArticleListener;
 import de.wikiclicks.parser.WikiParser;
 import de.wikiclicks.views.View;
 import de.wikiclicks.views.ViewClicksGraph;
@@ -21,9 +23,12 @@ public class WikiClicks {
 
     private PersistentArticleStorage wikiArticleStorage;
 
-    private WikiClicks(){
+    public GlobalSettings globalSettings;
+
+    private WikiClicks() {
         gui = new GUI();
         views = new ArrayList<>();
+        globalSettings = new GlobalSettings();
     }
 
     private GUI initGUI() {
@@ -37,6 +42,13 @@ public class WikiClicks {
             public void windowClosing(WindowEvent e) {
                 if(wikiArticleStorage != null)
                     wikiArticleStorage.close();
+            }
+        });
+
+        gui.getArticleSelectGUI().addArticleListener(new ArticleListener() {
+            @Override
+            public void articleChanged(String title) {
+                globalSettings.articleTitle = title;
             }
         });
 

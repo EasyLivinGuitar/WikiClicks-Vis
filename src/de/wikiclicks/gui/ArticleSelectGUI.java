@@ -1,23 +1,35 @@
 package de.wikiclicks.gui;
 
+import de.wikiclicks.listener.ArticleListener;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.font.TextAttribute;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
+import java.io.IOException;
+import java.text.AttributedString;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ArticleSelectGUI extends JPanel {
     private Rectangle2D background;
     private RoundRectangle2D window;
 
     private JButton xButton;
+    private JButton searchButton;
+    private JTextField searchBar;
 
     private String headline;
     private String subHeadline;
 
     private float headlineSize = 40.0f;
     private float subheadlineSize = 35.0f;
+
+    private List<ArticleListener> articleListener;
 
     public ArticleSelectGUI(){
         background = new Rectangle2D.Double();
@@ -33,11 +45,42 @@ public class ArticleSelectGUI extends JPanel {
                 setVisible(false);
             }
         });
-//        xButton.setBorder(BorderFactory.createCompoundBorder());
         add(xButton);
+
+        searchBar = new JTextField();
+        searchBar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                changeArticle(e.getActionCommand());
+            }
+        });
+        searchBar.setMargin(new Insets(0, 0, 0,0));
+        add(searchBar);
+
+        searchButton = new JButton();
+        searchButton.setMargin(new Insets(0,0,0,0));
+
+        try {
+            Image searchIcon = ImageIO.read(getClass().getResource("/icons/search-icon.png"));
+            searchButton.setIcon(new ImageIcon(searchIcon.getScaledInstance(20,20, Image.SCALE_SMOOTH)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                changeArticle(e.getActionCommand());
+            }
+        });
+
+        add(searchButton);
+
 
         headline = "Wiki-Clicks";
         subHeadline = "Visualization";
+
+        articleListener = new ArrayList<>();
     }
 
 
@@ -81,6 +124,25 @@ public class ArticleSelectGUI extends JPanel {
         g2D.setColor(Color.DARK_GRAY);
         g2D.drawString(subHeadline, (int)(windowPosX + windowWidth/2 - subheadlineWidth / 2), (int)(windowPosY + 100 + headlineSize ));
 
+        AttributedString articleSelection = new AttributedString("Article selection");
+        articleSelection.addAttribute(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+        articleSelection.addAttribute(TextAttribute.FONT, g2D.getFont().deriveFont(25.0f));
+        g2D.drawString(articleSelection.getIterator(), (int)(windowPosX + 20), (int) (windowPosY + windowHeight * 0.35));
+
         xButton.setBounds((int)windowPosX,(int)windowPosY, 40 ,30);
+        searchBar.setBounds((int)(windowPosX + 50), (int) (windowPosY + windowHeight * 0.38), (int) (windowWidth * 0.7), 30);
+
+        searchButton.setBounds((int)(windowPosX + 20), (int) (windowPosY + windowHeight * 0.38), 30, 30);
+
+    }
+
+    public void addArticleListener(ArticleListener listener){
+        articleListener.add(listener);
+    }
+
+    public void changeArticle(String title){
+        for(ArticleListener listener: articleListener){
+            listener.articleChanged(title);
+        }
     }
 }

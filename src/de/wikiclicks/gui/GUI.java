@@ -83,4 +83,8 @@ public class GUI extends JFrame {
     public void openArticleSelect(){
         articleSelectGUI.setVisible(true);
     }
+
+    public ArticleSelectGUI getArticleSelectGUI() {
+        return articleSelectGUI;
+    }
 }
