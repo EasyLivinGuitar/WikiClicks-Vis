@@ -70,6 +70,26 @@ public class WikiArticle implements Serializable{
         return max;
     }
 
+    public Long getMaxOfDay(String dayString){
+        Long max =0l;
+        boolean found = false;
+
+        for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
+            if(entry.getKey().startsWith(dayString)){
+                found = true;
+
+                if(entry.getValue() > max){
+                    max = entry.getValue();
+                }
+            }
+            else if(found){
+                break;
+            }
+        }
+
+        return max;
+    }
+
     public Long getTotalClicks(){
         Long sum = 0L;
 
