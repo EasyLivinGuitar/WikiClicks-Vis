@@ -7,10 +7,13 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class GUI extends JFrame {
     private CardLayout cardLayout;
     private JPanel cardPanel;
+    private ArticleSelectGUI articleSelectGUI;
 
     public GUI(){
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -21,12 +24,27 @@ public class GUI extends JFrame {
         cardPanel = new JPanel(cardLayout);
         add(cardPanel);
 
+        articleSelectGUI = new ArticleSelectGUI();
+
         initUIComponents();
     }
 
     private void initUIComponents(){
-        JPanel buttonPanel = new JPanel();
+        JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setPreferredSize(new Dimension(200, getHeight()));
+
+        JButton articleSelectButton = new JButton("Select article");
+        articleSelectButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                articleSelectGUI.setVisible(true);
+                articleSelectGUI.repaint();
+            }
+        });
+
+        buttonPanel.add(articleSelectButton);
+
+        setGlassPane(articleSelectGUI);
 
         String[] items = {"clicks-graph", "test", "pie"};
         JList list = new JList(items);
@@ -60,5 +78,9 @@ public class GUI extends JFrame {
 
     public void start(){
         setVisible(true);
+    }
+
+    public void openArticleSelect(){
+        articleSelectGUI.setVisible(true);
     }
 }
