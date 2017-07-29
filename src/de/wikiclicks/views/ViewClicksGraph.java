@@ -6,6 +6,7 @@ import de.wikiclicks.datastructures.WikiArticle;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.math.util.MathUtils;
 
+import javax.security.auth.callback.LanguageCallback;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
@@ -29,6 +30,8 @@ public class ViewClicksGraph extends View {
     private List<Line2D> dataLines;
 
     private WikiArticle currentArticle;
+
+    private boolean isDayView = true;
 
     public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage){
         this.wikiArticleStorage = wikiArticleStorage;
@@ -57,12 +60,28 @@ public class ViewClicksGraph extends View {
         g2D.clearRect(0, 0, getWidth(), getHeight());
 
         //TODO: Replace hardcoded values
-        int days = 30;
+
+        float maxGraph = 0;
+        double stepWidth = 0;
+        int units = 0;
+        Long maxClicks = 0L;
         String month = "201509";
-        Long maxClicks = currentArticle.getMaxOfMonth(month);
+        String day = "20150901";
+
+        if (isDayView == false) {
+            int days = 30;
+            units = days;
+            maxClicks = currentArticle.getMaxOfMonth(month);
+        }
+        else{
+            int hours = 24;
+            units = hours;
+            maxClicks = currentArticle.getMaxOfDay(day);
+        }
+
         int roundPrecision = String.valueOf(maxClicks).length() - 2;
-        float maxGraph = MathUtils.round(maxClicks, -roundPrecision, BigDecimal.ROUND_UP);
-        double stepWidth = maxGraph / 10.0;
+        maxGraph = MathUtils.round(maxClicks, -roundPrecision, BigDecimal.ROUND_UP);
+        stepWidth = maxGraph / 10.0;
 
         drawBackground(g2D);
 
@@ -70,8 +89,8 @@ public class ViewClicksGraph extends View {
 
         drawAxis(g2D);
 
-        //calculate length of day rectangle
-        double dayLength = (xAxis.getX2() - xAxis.getX1()) / (double)(days);
+        //calculate length of unit rectangle
+        double unitLength = (xAxis.getX2() - xAxis.getX1()) / (double)(units);
         double lengthYAxis = yAxis.getY2() - yAxis.getY1();
         double scaling = (lengthYAxis) / maxGraph;
 
@@ -92,23 +111,46 @@ public class ViewClicksGraph extends View {
         }
 
         g2D.setFont(g2D.getFont().deriveFont(12.0f));
-        for(int i = 1; i <= days; i++){
-            Rectangle2D currentRect = drawDayRects(g2D, i, dayLength);
+        for(int i = 1; i <= units; i++){
+            Rectangle2D currentRect = drawUnitRect(g2D, i, unitLength);
 
             DataPoint dataPoint = dataPoints.get(i - 1);
 
-            dataPoint.setValue(currentArticle.getClicksOnDay(month + String.format("%02d", i)));
+            if(isDayView == false) {
+                dataPoint.setValue(currentArticle.getClicksOnDay(month + String.format("%02d", i)));
+            }
+            else {
+                dataPoint.setValue(currentArticle.getClicksOnHour(day + String.format("%02d", i-1) + "00"));
+            }
             double dataY = dataPoint.getValue() * scaling + yAxis.getY1();
 
 
             //Draw click function (points)
             dataPoint.setCoord(currentRect.getCenterX(), dataY);
 
+            //Draw click function (lines)
+            if(i > 1){
+                DataPoint lastDataPoint = dataPoints.get(i - 2);
+                Line2D dataLine = dataLines.get(i - 1);
+
+                dataLine.setLine(lastDataPoint.getX(), lastDataPoint.getY(), dataPoint.getX(), dataPoint.getY());
+
+
+                g2D.setColor(Color.BLUE);
+                g2D.draw(dataLine);
+            }
+
             Ellipse2D centerEllipse = dataPoint.getDrawGeom();
 
             if(dataPoint.isHighlighted()){
+                String value = String.valueOf(dataPoint.getValue());
+                g2D.setColor(Color.PINK);
+                Rectangle2D rect = new Rectangle2D.Double((int)dataPoint.getX(), (int)dataPoint.getY() - g2D.getFontMetrics().getHeight(), g2D.getFontMetrics().stringWidth(value), g2D.getFontMetrics().getHeight());
+                g2D.fill(rect);
+                g2D.draw(rect);
+
                 g2D.setColor(Color.BLACK);
-                g2D.drawString(String.valueOf(dataPoint.getValue()), (int)dataPoint.getX(), (int) dataPoint.getY());
+                g2D.drawString(value, (int)dataPoint.getX(), (int) dataPoint.getY());
 
                 g2D.setColor(Color.RED);
             }
@@ -119,15 +161,7 @@ public class ViewClicksGraph extends View {
             g2D.fill(centerEllipse);
             g2D.draw(centerEllipse);
 
-            //Draw click function (lines)
-            if(i > 1){
-                DataPoint lastDataPoint = dataPoints.get(i - 2);
-                Line2D dataLine = dataLines.get(i - 1);
 
-                dataLine.setLine(lastDataPoint.getX(), lastDataPoint.getY(), dataPoint.getX(), dataPoint.getY());
-                g2D.setColor(Color.BLUE);
-                g2D.draw(dataLine);
-            }
         }
     }
 
@@ -190,19 +224,38 @@ public class ViewClicksGraph extends View {
         g2D.drawString(title, (int)(x), (int) y);
         g2D.setFont(font.deriveFont(Font.PLAIN).deriveFont(25.0f));
 
-        String startDate = currentArticle.getStartDate();
-        String endDate = currentArticle.getEndDate();
-
-        SimpleDateFormat dateFormatIn = new SimpleDateFormat("yyyyMMddHHmm");
-        SimpleDateFormat dateFormatOut = new SimpleDateFormat("dd/MM/yyyy");
-
         String formattedStartDate = "";
         String formattedEndDate = "";
-        try {
-            formattedStartDate = dateFormatOut.format(dateFormatIn.parse(startDate));
-            formattedEndDate = dateFormatOut.format(dateFormatIn.parse(endDate));
-        } catch (ParseException e) {
-            e.printStackTrace();
+
+        SimpleDateFormat dateFormatIn = new SimpleDateFormat("yyyyMMddHHmm");
+
+        if(isDayView == false) {
+            String startDate = currentArticle.getStartDate();
+            String endDate = currentArticle.getEndDate();
+
+            SimpleDateFormat dateFormatOut = new SimpleDateFormat("dd/MM/yyyy");
+
+            try {
+                formattedStartDate = dateFormatOut.format(dateFormatIn.parse(startDate));
+                formattedEndDate = dateFormatOut.format(dateFormatIn.parse(endDate));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        // TODO: replace hardcoded values
+        else {
+            String startDate = "201509010000";
+            String endDate = "201509012300";
+
+            SimpleDateFormat dateFormatOutStart = new SimpleDateFormat("dd/MM, HH:mm");
+            SimpleDateFormat dateFormatOutEnd = new SimpleDateFormat("HH:mm");
+
+            try {
+                formattedStartDate = dateFormatOutStart.format(dateFormatIn.parse(startDate));
+                formattedEndDate = dateFormatOutEnd.format(dateFormatIn.parse(endDate));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
 
         StringBuilder builder = new StringBuilder();
@@ -244,19 +297,23 @@ public class ViewClicksGraph extends View {
         g2D.draw(yAxis);
     }
 
-    private Rectangle2D drawDayRects(Graphics2D g2D, int day, double dayLength){
-        double currentX = xAxis.getX1() + (day - 1) * dayLength;
-        Rectangle2D currentRect = dayRects.get(day - 1);
-        currentRect.setRect(currentX, xAxis.getY1(), dayLength, graphBackground.getHeight() * 0.03);
+    private Rectangle2D drawUnitRect(Graphics2D g2D, int unit, double unitLength){
+        double currentX = xAxis.getX1() + (unit - 1) * unitLength;
+        Rectangle2D currentRect = dayRects.get(unit - 1);
+        currentRect.setRect(currentX, xAxis.getY1(), unitLength, graphBackground.getHeight() * 0.03);
         g2D.setColor(Color.BLACK);
         g2D.draw(currentRect);
 
-        float stringWidth = g2D.getFontMetrics().stringWidth(String.valueOf(day));
+        float stringWidth = g2D.getFontMetrics().stringWidth(String.valueOf(unit));
         float stringHeight = g2D.getFont().getSize();
 
+        if (isDayView == true) {
+            unit -=1;
+        }
+
         g2D.drawString(
-                String.valueOf(day),
-                (float)(currentX + dayLength / 2.0 - stringWidth / 2.0),
+                String.valueOf(unit),
+                (float)(currentX + unitLength / 2.0 - stringWidth / 2.0),
                 (float) (xAxis.getY1() + graphBackground.getHeight() * 0.015 + stringHeight / 2.0)
         );
 
