@@ -81,7 +81,7 @@ public class WikiClicks {
 
     private void initWikiArticles(String wikiPath){
         System.out.print("Initialize wiki articles...");
-        wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage");
+        wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage-new");
 
         if(!wikiArticleStorage.isFilled()){
             File wikiDir = new File(wikiPath);
@@ -109,7 +109,7 @@ public class WikiClicks {
 
     public static void main(String[] args) {
         WikiClicks wikiClicks = new WikiClicks();
-        wikiClicks.initWikiArticles("/media/storage1/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
+        wikiClicks.initWikiArticles("/media/kipu5728/92e4d620-8187-4d97-a7bb-ecbe1408e352/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override

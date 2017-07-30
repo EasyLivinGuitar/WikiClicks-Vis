@@ -10,13 +10,15 @@ public class WikiArticle implements Serializable{
     private String title;
 
     private TreeMap<String, Long> clickStatsPerHour;
-    // TODO: click stats per day pre-calculation
-    // TODO: click stats per month pre-calculation
+    private TreeMap<String, Long> clickStatsPerDay;
+    private TreeMap<String, Long> clickStatsPerMonth;
 
     public WikiArticle(String title){
         this.title = title;
 
-        clickStatsPerHour = new TreeMap<>(new DateComparator());
+        clickStatsPerHour = new TreeMap<>(new DateComparator("yyyyMMddHHmm"));
+        clickStatsPerDay = new TreeMap<>(new DateComparator("yyyyMMdd"));
+        clickStatsPerMonth = new TreeMap<>(new DateComparator("yyyyMM"));
     }
 
     public void addClickStat(String date, Long clicks){
@@ -25,11 +27,19 @@ public class WikiArticle implements Serializable{
         }
         else{
             clickStatsPerHour.put(date, clicks);
+
+            String day = date.substring(0, date.length() - 4);
+            clickStatsPerDay.put(day, clickStatsPerDay.getOrDefault(day, 0L) + clicks);
+
+            String month = date.substring(0, date.length() - 6);
+            clickStatsPerMonth.put(month, clickStatsPerMonth.getOrDefault(month, 0L) + clicks);
         }
     }
 
     public void join(WikiArticle article){
         clickStatsPerHour.putAll(article.clickStatsPerHour);
+        clickStatsPerDay.putAll(article.clickStatsPerDay);
+        clickStatsPerMonth.putAll(article.clickStatsPerMonth);
     }
 
     public Long getClicksOnHour(String date){
@@ -37,37 +47,7 @@ public class WikiArticle implements Serializable{
     }
 
     public Long getClicksOnDay(String dayString){
-        Long sum = 0L;
-        boolean found = false;
-
-        for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
-            if(entry.getKey().startsWith(dayString)){
-                found = true;
-                sum += entry.getValue();
-            }
-            else if(found){
-                break;
-            }
-        }
-
-        return sum;
-    }
-
-    public Long getMaxOfMonth(String monthString){
-        Long max = 0L;
-
-        for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
-            if(entry.getKey().startsWith(monthString)){
-                String day = entry.getKey().substring(0, entry.getKey().length() - 4);
-                Long clicksOnDay = getClicksOnDay(day);
-
-                if(clicksOnDay > max){
-                    max = clicksOnDay;
-                }
-            }
-        }
-
-        return max;
+        return clickStatsPerDay.getOrDefault(dayString, 0L);
     }
 
     public Long getMaxOfDay(String dayString){
@@ -90,6 +70,22 @@ public class WikiArticle implements Serializable{
         return max;
     }
 
+    public Long getMaxOfMonth(String monthString) {
+        Long max = 0L;
+
+        for(Map.Entry<String, Long> entry: clickStatsPerDay.entrySet()){
+            if(entry.getKey().startsWith(monthString)){
+                Long clicksOnDay = getClicksOnDay(entry.getKey());
+
+                if(clicksOnDay > max){
+                    max = clicksOnDay;
+                }
+            }
+        }
+
+        return max;
+    }
+
     public Long getTotalClicks(){
         Long sum = 0L;
 
@@ -104,9 +100,16 @@ public class WikiArticle implements Serializable{
     public String toString(){
         StringBuilder builder = new StringBuilder();
 
-        builder.append(title);
+        builder.append("\n\n").append(title);
 
         for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
+            builder.append("\n")
+                    .append(entry.getKey())
+                    .append(" : ")
+                    .append(entry.getValue());
+        }
+
+        for(Map.Entry<String, Long> entry: clickStatsPerDay.entrySet()){
             builder.append("\n")
                     .append(entry.getKey())
                     .append(" : ")
