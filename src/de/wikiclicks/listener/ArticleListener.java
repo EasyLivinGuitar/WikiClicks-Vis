@@ -4,4 +4,5 @@ import java.util.EventListener;
 
 public abstract class ArticleListener implements EventListener {
     public abstract void articleChanged(String title);
+    public abstract void articleSearched(String title);
 }

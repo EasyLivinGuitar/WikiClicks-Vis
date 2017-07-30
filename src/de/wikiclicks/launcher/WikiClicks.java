@@ -59,6 +59,11 @@ public class WikiClicks {
                     System.out.println("ERROR: Not found \""+title+"\"");
                 }
             }
+
+            @Override
+            public void articleSearched(String title) {
+                globalSettings.articleChangeSuccess = wikiArticleStorage.containsTitle(title.toLowerCase());
+            }
         });
 
         System.out.println("Done.");
@@ -98,6 +103,7 @@ public class WikiClicks {
             }
         }
 
+        globalSettings.currentArticle = wikiArticleStorage.get("main page");
         System.out.println("Done. "/*+wikiArticleStorage.size()+ " articles initialized."*/);
     }
 
