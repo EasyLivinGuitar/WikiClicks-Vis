@@ -1,10 +1,12 @@
 package de.wikiclicks.launcher;
 
 import de.wikiclicks.controller.ClicksGraphMouseController;
+import de.wikiclicks.datastructures.EntityIndex;
 import de.wikiclicks.datastructures.GlobalSettings;
 import de.wikiclicks.datastructures.PersistentArticleStorage;
 import de.wikiclicks.gui.GUI;
 import de.wikiclicks.listener.ArticleListener;
+import de.wikiclicks.parser.NewsParser;
 import de.wikiclicks.parser.WikiParser;
 import de.wikiclicks.views.View;
 import de.wikiclicks.views.ViewClicksGraph;
@@ -22,6 +24,7 @@ public class WikiClicks {
     private List<View> views;
 
     private PersistentArticleStorage wikiArticleStorage;
+    private EntityIndex newsEntityIndex;
 
     public static GlobalSettings globalSettings;
 
@@ -42,6 +45,9 @@ public class WikiClicks {
             public void windowClosing(WindowEvent e) {
                 if(wikiArticleStorage != null)
                     wikiArticleStorage.close();
+
+                if(newsEntityIndex != null)
+                    newsEntityIndex.close();
             }
         });
 
@@ -79,12 +85,12 @@ public class WikiClicks {
         System.out.println("Done. "+views.size()+" views initialized.");
     }
 
-    private void initWikiArticles(String wikiPath){
+    private void initWikiArticles(){
         System.out.print("Initialize wiki articles...");
-        wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage-new");
+        wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage");
 
         if(!wikiArticleStorage.isFilled()){
-            File wikiDir = new File(wikiPath);
+            File wikiDir = new File("/media/kipu5728/92e4d620-8187-4d97-a7bb-ecbe1408e352/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
             WikiParser parser = new WikiParser();
 
             if(wikiDir.isDirectory()){
@@ -107,19 +113,14 @@ public class WikiClicks {
         System.out.println("Done. "/*+wikiArticleStorage.size()+ " articles initialized."*/);
     }
 
-    public static void main(String[] args) {
-        WikiClicks wikiClicks = new WikiClicks();
-        wikiClicks.initWikiArticles("/media/kipu5728/92e4d620-8187-4d97-a7bb-ecbe1408e352/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
+    private void initNewsArticles(){
+        System.out.print("Inititalize news articles...");
+        NewsParser parser = new NewsParser();
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                wikiClicks.initViews();
-                GUI gui = wikiClicks.initGUI();
+        newsEntityIndex = parser.index("./data/news-entity-index");
+        System.out.println(newsEntityIndex.get("white house").size());
 
-                gui.start();
-            }
-        });
+        System.out.println("Done. ");
     }
 
     private View initClicksGraphView(){
@@ -131,5 +132,21 @@ public class WikiClicks {
 
         return clicksGraph;
 
+    }
+
+    public static void main(String[] args) {
+        WikiClicks wikiClicks = new WikiClicks();
+        wikiClicks.initWikiArticles();
+        wikiClicks.initNewsArticles();
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                wikiClicks.initViews();
+                GUI gui = wikiClicks.initGUI();
+
+                gui.start();
+            }
+        });
     }
 }

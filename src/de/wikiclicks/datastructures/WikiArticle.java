@@ -36,18 +36,25 @@ public class WikiArticle implements Serializable{
         }
     }
 
-    public void join(WikiArticle article){
+    public void replace(WikiArticle article){
         clickStatsPerHour.putAll(article.clickStatsPerHour);
         clickStatsPerDay.putAll(article.clickStatsPerDay);
         clickStatsPerMonth.putAll(article.clickStatsPerMonth);
     }
 
+    public void merge(WikiArticle article){
+        clickStatsPerHour.putAll(article.clickStatsPerHour);
+
+        article.clickStatsPerDay.forEach((key, value) -> clickStatsPerDay.merge(key, value, (val1, val2) -> val1 + val2));
+        article.clickStatsPerMonth.forEach((key, value) -> clickStatsPerMonth.merge(key, value, (val1, val2) -> val1 + val2));
+    }
+
     public Long getClicksOnHour(String date){
-        return clickStatsPerHour.getOrDefault(date, 0L);
+        return clickStatsPerHour.getOrDefault(date, null);
     }
 
     public Long getClicksOnDay(String dayString){
-        return clickStatsPerDay.getOrDefault(dayString, 0L);
+        return clickStatsPerDay.getOrDefault(dayString, null);
     }
 
     public Long getMaxOfDay(String dayString){

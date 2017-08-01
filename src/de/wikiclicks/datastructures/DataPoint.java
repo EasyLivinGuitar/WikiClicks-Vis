@@ -25,7 +25,12 @@ public class DataPoint {
     }
 
     public void setValue(Long value){
-        this.value = value;
+        if(value == null){
+            this.value = 0L;
+        }
+        else{
+            this.value = value;
+        }
     }
 
     public Long getValue(){
