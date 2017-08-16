@@ -1,10 +1,8 @@
 package de.wikiclicks.views;
 
-import de.wikiclicks.datastructures.DataPoint;
-import de.wikiclicks.datastructures.EntityIndex;
-import de.wikiclicks.datastructures.PersistentArticleStorage;
-import de.wikiclicks.datastructures.WikiArticle;
+import de.wikiclicks.datastructures.*;
 import de.wikiclicks.launcher.WikiClicks;
+import de.wikiclicks.utils.DateComparator;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.math.util.MathUtils;
 
@@ -15,7 +13,7 @@ import java.awt.geom.Rectangle2D;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 
@@ -23,7 +21,16 @@ public class ViewClicksGraph extends View {
     private PersistentArticleStorage wikiArticleStorage;
     private EntityIndex newsEntityIndex;
 
-    private WikiArticle currentArticle;
+    private WikiArticle currentWikiArticle;
+    private Map<String, Set<NewsArticle>> currentNewsArticlesDay;
+    private Map<String, Set<NewsArticle>> currentNewsArticlesHour;
+
+    private int numNewsArticles;
+
+    private Date startDate;
+    private Date endDate;
+
+    private SimpleDateFormat dateFormat;
 
     private Rectangle2D graphBackground;
     private Rectangle2D titleField;
@@ -36,8 +43,12 @@ public class ViewClicksGraph extends View {
     private boolean isDayView = false;
 
     public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage, EntityIndex newsEntityIndex){
+        setLayout(new FlowLayout());
         this.wikiArticleStorage = wikiArticleStorage;
         this.newsEntityIndex = newsEntityIndex;
+
+        currentNewsArticlesDay = new TreeMap<>(new DateComparator("yyyyMMdd"));
+        currentNewsArticlesHour = new TreeMap<>(new DateComparator("yyyyMMddHH"));
 
         graphBackground = new Rectangle2D.Double();
         titleField = new Rectangle2D.Double();
@@ -53,7 +64,51 @@ public class ViewClicksGraph extends View {
             dataLines.add(new Line2D.Double());
         }
 
-        currentArticle = WikiClicks.globalSettings.currentArticle;
+        currentWikiArticle = WikiClicks.globalSettings.currentArticle;
+        dateFormat = new SimpleDateFormat("yyyyMMddHHmm");
+
+        try {
+            startDate = dateFormat.parse(currentWikiArticle.getStartDate());
+            endDate = dateFormat.parse(currentWikiArticle.getEndDate());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
+        initNewsArticles();
+    }
+
+    private void initNewsArticles(){
+        Set<NewsArticle> articles = this.newsEntityIndex.get(currentWikiArticle.getTitle());
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        SimpleDateFormat outputFormatDay = new SimpleDateFormat("yyyyMMdd");
+        SimpleDateFormat outputFormatHour = new SimpleDateFormat("yyyyMMddHH");
+        numNewsArticles = 0;
+
+        currentNewsArticlesDay.clear();
+        currentNewsArticlesHour.clear();
+
+        for(NewsArticle article: articles){
+            Date date = null;
+            try {
+                date = inputFormat.parse(article.getPublished());
+
+                if(date.compareTo(outputFormatHour.parse("2015090100")) < 0){
+                    date = null;
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            if(date != null){
+                numNewsArticles++;
+                currentNewsArticlesDay.putIfAbsent(outputFormatDay.format(date), new HashSet<>());
+                currentNewsArticlesDay.get(outputFormatDay.format(date)).add(article);
+
+                currentNewsArticlesHour.putIfAbsent(outputFormatHour.format(date), new HashSet<>());
+                currentNewsArticlesHour.get(outputFormatHour.format(date)).add((article));
+            }
+        }
     }
 
     @Override
@@ -74,12 +129,12 @@ public class ViewClicksGraph extends View {
         if (!isDayView) {
             int days = 30;
             units = days;
-            maxClicks = currentArticle.getMaxOfMonth(month);
+            maxClicks = currentWikiArticle.getMaxOfMonth(month);
         }
         else{
             int hours = 24;
             units = hours;
-            maxClicks = currentArticle.getMaxOfDay(day);
+            maxClicks = currentWikiArticle.getMaxOfDay(day);
         }
 
         int roundPrecision = String.valueOf(maxClicks).length() - 2;
@@ -120,10 +175,10 @@ public class ViewClicksGraph extends View {
             DataPoint dataPoint = dataPoints.get(i - 1);
 
             if(!isDayView) {
-                dataPoint.setValue(currentArticle.getClicksOnDay(month + String.format("%02d", i)));
+                dataPoint.setValue(currentWikiArticle.getClicksOnDay(month + String.format("%02d", i)));
             }
             else {
-                dataPoint.setValue(currentArticle.getClicksOnHour(day + String.format("%02d", i-1) + "00"));
+                dataPoint.setValue(currentWikiArticle.getClicksOnHour(day + String.format("%02d", i-1) + "00"));
             }
             double dataY = dataPoint.getValue() * scaling + yAxis.getY1();
 
@@ -147,15 +202,23 @@ public class ViewClicksGraph extends View {
 
             if(dataPoint.isHighlighted()){
                 String value = String.valueOf(dataPoint.getValue());
-                g2D.setColor(Color.PINK);
-                Rectangle2D rect = new Rectangle2D.Double((int)dataPoint.getX(), (int)dataPoint.getY() - g2D.getFontMetrics().getHeight(), g2D.getFontMetrics().stringWidth(value), g2D.getFontMetrics().getHeight());
+                g2D.setColor(new Color(0.95f, 0.95f, 0.95f));
+                g2D.setFont(g2D.getFont().deriveFont(Font.BOLD));
+
+                Rectangle2D rect = new Rectangle2D.Double(
+                        (int)dataPoint.getX() - g2D.getFontMetrics().stringWidth(value) - 10,
+                        (int)dataPoint.getY() - g2D.getFontMetrics().getHeight() - 10,
+                        g2D.getFontMetrics().stringWidth(value) + 10,
+                        g2D.getFontMetrics().getHeight() + 10) ;
                 g2D.fill(rect);
+                g2D.setColor(Color.WHITE);
                 g2D.draw(rect);
 
                 g2D.setColor(Color.BLACK);
-                g2D.drawString(value, (int)dataPoint.getX(), (int) dataPoint.getY());
+                g2D.drawString(value, (int)dataPoint.getX() - g2D.getFontMetrics().stringWidth(value) - 5, (int) dataPoint.getY() - 5);
 
                 g2D.setColor(Color.RED);
+                g2D.setFont(g2D.getFont().deriveFont(Font.PLAIN));
             }
             else{
                 g2D.setColor(Color.GRAY);
@@ -163,8 +226,6 @@ public class ViewClicksGraph extends View {
 
             g2D.fill(centerEllipse);
             g2D.draw(centerEllipse);
-
-
         }
     }
 
@@ -213,7 +274,7 @@ public class ViewClicksGraph extends View {
 
         g2D.draw(titleField);
 
-        String title = currentArticle.getTitle();
+        String title = currentWikiArticle.getTitle();
         title = WordUtils.capitalize(title);
         Font font = g2D.getFont();
         font = font.deriveFont(Font.BOLD).deriveFont(30.0f);
@@ -230,35 +291,18 @@ public class ViewClicksGraph extends View {
         String formattedStartDate = "";
         String formattedEndDate = "";
 
-        SimpleDateFormat dateFormatIn = new SimpleDateFormat("yyyyMMddHHmm");
-
         if(!isDayView) {
-            String startDate = currentArticle.getStartDate();
-            String endDate = currentArticle.getEndDate();
-
             SimpleDateFormat dateFormatOut = new SimpleDateFormat("dd/MM/yyyy");
 
-            try {
-                formattedStartDate = dateFormatOut.format(dateFormatIn.parse(startDate));
-                formattedEndDate = dateFormatOut.format(dateFormatIn.parse(endDate));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            formattedStartDate = dateFormatOut.format(startDate);
+            formattedEndDate = dateFormatOut.format(endDate);
         }
-        // TODO: replace hardcoded values
         else {
-            String startDate = "201509010000";
-            String endDate = "201509012300";
-
             SimpleDateFormat dateFormatOutStart = new SimpleDateFormat("dd/MM, HH:mm");
             SimpleDateFormat dateFormatOutEnd = new SimpleDateFormat("HH:mm");
 
-            try {
-                formattedStartDate = dateFormatOutStart.format(dateFormatIn.parse(startDate));
-                formattedEndDate = dateFormatOutEnd.format(dateFormatIn.parse(endDate));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            formattedStartDate = dateFormatOutStart.format(startDate);
+            formattedEndDate = dateFormatOutEnd.format(endDate);
         }
 
         StringBuilder builder = new StringBuilder();
@@ -301,11 +345,32 @@ public class ViewClicksGraph extends View {
     }
 
     private Rectangle2D drawUnitRect(Graphics2D g2D, int unit, double unitLength){
+        String dateBase = dateFormat.format(startDate);
+        dateBase = dateBase.substring(0, dateBase.length() - 6);
+        String currentDateStringDay = dateBase + String.format("%02d", unit);
+
         double currentX = xAxis.getX1() + (unit - 1) * unitLength;
         Rectangle2D currentRect = dayRects.get(unit - 1);
         currentRect.setRect(currentX, xAxis.getY1(), unitLength, graphBackground.getHeight() * 0.03);
+
+        if(numNewsArticles > 0){
+            double percentage = (double)(currentNewsArticlesDay.getOrDefault(currentDateStringDay, new HashSet<>()).size())
+                    / (double)(numNewsArticles) * 100.0;
+
+            if(percentage < 2.0){
+                g2D.setColor(Color.WHITE);
+            }else if(percentage >= 2.0 && percentage < 5.0){
+                g2D.setColor(Color.PINK);
+            }else if(percentage >= 5.0){
+                g2D.setColor(Color.RED);
+            }
+
+            g2D.fill(currentRect);
+        }
+
         g2D.setColor(Color.BLACK);
         g2D.draw(currentRect);
+
 
         float stringWidth = g2D.getFontMetrics().stringWidth(String.valueOf(unit));
         float stringHeight = g2D.getFont().getSize();
@@ -333,7 +398,9 @@ public class ViewClicksGraph extends View {
 
     @Override
     public void changeArticle(WikiArticle newArticle) {
-        currentArticle = newArticle;
+        currentWikiArticle = newArticle;
+
+        initNewsArticles();
         repaint();
     }
 }
