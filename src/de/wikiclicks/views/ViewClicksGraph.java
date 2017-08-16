@@ -1,6 +1,7 @@
 package de.wikiclicks.views;
 
 import de.wikiclicks.datastructures.DataPoint;
+import de.wikiclicks.datastructures.EntityIndex;
 import de.wikiclicks.datastructures.PersistentArticleStorage;
 import de.wikiclicks.datastructures.WikiArticle;
 import de.wikiclicks.launcher.WikiClicks;
@@ -20,6 +21,9 @@ import java.util.List;
 
 public class ViewClicksGraph extends View {
     private PersistentArticleStorage wikiArticleStorage;
+    private EntityIndex newsEntityIndex;
+
+    private WikiArticle currentArticle;
 
     private Rectangle2D graphBackground;
     private Rectangle2D titleField;
@@ -29,12 +33,11 @@ public class ViewClicksGraph extends View {
     private List<DataPoint> dataPoints;
     private List<Line2D> dataLines;
 
-    private WikiArticle currentArticle;
-
     private boolean isDayView = false;
 
-    public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage){
+    public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage, EntityIndex newsEntityIndex){
         this.wikiArticleStorage = wikiArticleStorage;
+        this.newsEntityIndex = newsEntityIndex;
 
         graphBackground = new Rectangle2D.Double();
         titleField = new Rectangle2D.Double();
@@ -68,7 +71,7 @@ public class ViewClicksGraph extends View {
         String month = "201509";
         String day = "20150901";
 
-        if (isDayView == false) {
+        if (!isDayView) {
             int days = 30;
             units = days;
             maxClicks = currentArticle.getMaxOfMonth(month);
@@ -116,7 +119,7 @@ public class ViewClicksGraph extends View {
 
             DataPoint dataPoint = dataPoints.get(i - 1);
 
-            if(isDayView == false) {
+            if(!isDayView) {
                 dataPoint.setValue(currentArticle.getClicksOnDay(month + String.format("%02d", i)));
             }
             else {
@@ -229,7 +232,7 @@ public class ViewClicksGraph extends View {
 
         SimpleDateFormat dateFormatIn = new SimpleDateFormat("yyyyMMddHHmm");
 
-        if(isDayView == false) {
+        if(!isDayView) {
             String startDate = currentArticle.getStartDate();
             String endDate = currentArticle.getEndDate();
 
@@ -307,7 +310,7 @@ public class ViewClicksGraph extends View {
         float stringWidth = g2D.getFontMetrics().stringWidth(String.valueOf(unit));
         float stringHeight = g2D.getFont().getSize();
 
-        if (isDayView == true) {
+        if (isDayView) {
             unit -=1;
         }
 

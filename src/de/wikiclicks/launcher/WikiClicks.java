@@ -3,6 +3,7 @@ package de.wikiclicks.launcher;
 import de.wikiclicks.controller.ClicksGraphMouseController;
 import de.wikiclicks.datastructures.EntityIndex;
 import de.wikiclicks.datastructures.GlobalSettings;
+import de.wikiclicks.datastructures.NewsArticle;
 import de.wikiclicks.datastructures.PersistentArticleStorage;
 import de.wikiclicks.gui.GUI;
 import de.wikiclicks.listener.ArticleListener;
@@ -18,6 +19,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class WikiClicks {
     private GUI gui;
@@ -119,11 +121,17 @@ public class WikiClicks {
 
         newsEntityIndex = parser.index("./data/news-entity-index");
 
+        Set<NewsArticle> articleSet = newsEntityIndex.get("angela merkel");
+
+        for(NewsArticle article: articleSet){
+            System.out.println(article);
+        }
+
         System.out.println("Done. ");
     }
 
     private View initClicksGraphView(){
-        ViewClicksGraph clicksGraph = new ViewClicksGraph(wikiArticleStorage);
+        ViewClicksGraph clicksGraph = new ViewClicksGraph(wikiArticleStorage, newsEntityIndex);
 
         ClicksGraphMouseController controller = new ClicksGraphMouseController(clicksGraph);
         clicksGraph.addMouseListener(controller);
