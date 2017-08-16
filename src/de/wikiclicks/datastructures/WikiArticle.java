@@ -13,6 +13,8 @@ public class WikiArticle implements Serializable{
     private TreeMap<String, Long> clickStatsPerDay;
     private TreeMap<String, Long> clickStatsPerMonth;
 
+    static final long serialVersionUID = -6572202523954191783L;
+
     public WikiArticle(String title){
         this.title = title;
 

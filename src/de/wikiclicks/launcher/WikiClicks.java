@@ -109,7 +109,7 @@ public class WikiClicks {
             }
         }
 
-        globalSettings.currentArticle = wikiArticleStorage.get("main page");
+        globalSettings.currentArticle = wikiArticleStorage.get("white house");
         System.out.println("Done. "/*+wikiArticleStorage.size()+ " articles initialized."*/);
     }
 
@@ -118,7 +118,6 @@ public class WikiClicks {
         NewsParser parser = new NewsParser();
 
         newsEntityIndex = parser.index("./data/news-entity-index");
-        System.out.println(newsEntityIndex.get("white house").size());
 
         System.out.println("Done. ");
     }

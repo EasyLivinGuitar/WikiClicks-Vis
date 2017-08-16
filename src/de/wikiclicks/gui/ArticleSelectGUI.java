@@ -111,7 +111,7 @@ public class ArticleSelectGUI extends JPanel {
         selectedLabel.setForeground(Color.DARK_GRAY);
         add(selectedLabel);
 
-        articleTitle = new JLabel("\"Main Page\"");
+        articleTitle = new JLabel("\""+""+"\"");
         articleTitle.setFont(articleTitle.getFont().deriveFont(25.0f).deriveFont(Font.PLAIN));
         articleTitle.setForeground(Color.DARK_GRAY);
         add(articleTitle);

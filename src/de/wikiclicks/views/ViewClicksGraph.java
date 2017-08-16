@@ -3,6 +3,7 @@ package de.wikiclicks.views;
 import de.wikiclicks.datastructures.DataPoint;
 import de.wikiclicks.datastructures.PersistentArticleStorage;
 import de.wikiclicks.datastructures.WikiArticle;
+import de.wikiclicks.launcher.WikiClicks;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.math.util.MathUtils;
 
@@ -49,7 +50,7 @@ public class ViewClicksGraph extends View {
             dataLines.add(new Line2D.Double());
         }
 
-        currentArticle = wikiArticleStorage.get("main page");
+        currentArticle = WikiClicks.globalSettings.currentArticle;
     }
 
     @Override
