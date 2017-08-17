@@ -357,11 +357,13 @@ public class ViewClicksGraph extends View {
             double percentage = (double)(currentNewsArticlesDay.getOrDefault(currentDateStringDay, new HashSet<>()).size())
                     / (double)(numNewsArticles) * 100.0;
 
-            if(percentage < 2.0){
+            if(percentage < 1.0){
                 g2D.setColor(Color.WHITE);
-            }else if(percentage >= 2.0 && percentage < 5.0){
+            }else if(percentage >= 1.0 && percentage < 5.0){
                 g2D.setColor(Color.PINK);
-            }else if(percentage >= 5.0){
+            }else if(percentage >= 5.0 && percentage < 10.0){
+                g2D.setColor(new Color(239, 77, 84));
+            }else if(percentage >= 10.0){
                 g2D.setColor(Color.RED);
             }
 
