@@ -31,6 +31,7 @@ public class ViewClicksGraph extends View {
     private Date endDate;
 
     private SimpleDateFormat dateFormat;
+    private SimpleDateFormat dayFormat;
 
     private Rectangle2D graphBackground;
     private Rectangle2D titleField;
@@ -40,7 +41,11 @@ public class ViewClicksGraph extends View {
     private List<DataPoint> dataPoints;
     private List<Line2D> dataLines;
 
-    private boolean isDayView = false;
+    private boolean isDayView = true;
+
+//    hard coded
+    private String month = "201509";
+    private String day = "20150910";
 
     public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage, EntityIndex newsEntityIndex){
         setLayout(new FlowLayout());
@@ -66,10 +71,17 @@ public class ViewClicksGraph extends View {
 
         currentWikiArticle = WikiClicks.globalSettings.currentArticle;
         dateFormat = new SimpleDateFormat("yyyyMMddHHmm");
+        dayFormat = new SimpleDateFormat("yyyyMMdd");
 
         try {
-            startDate = dateFormat.parse(currentWikiArticle.getStartDate());
-            endDate = dateFormat.parse(currentWikiArticle.getEndDate());
+            if(!isDayView) {
+                startDate = dateFormat.parse(currentWikiArticle.getStartDate());
+                endDate = dateFormat.parse(currentWikiArticle.getEndDate());
+            }
+            else {
+                startDate = dayFormat.parse(day);
+                endDate = startDate;
+            }
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -123,8 +135,7 @@ public class ViewClicksGraph extends View {
         double stepWidth = 0;
         int units = 0;
         Long maxClicks = 0L;
-        String month = "201509";
-        String day = "20150901";
+
 
         if (!isDayView) {
             int days = 30;
@@ -299,7 +310,7 @@ public class ViewClicksGraph extends View {
         }
         else {
             SimpleDateFormat dateFormatOutStart = new SimpleDateFormat("dd/MM, HH:mm");
-            SimpleDateFormat dateFormatOutEnd = new SimpleDateFormat("HH:mm");
+            SimpleDateFormat dateFormatOutEnd = new SimpleDateFormat("23:00");
 
             formattedStartDate = dateFormatOutStart.format(startDate);
             formattedEndDate = dateFormatOutEnd.format(endDate);
@@ -346,16 +357,35 @@ public class ViewClicksGraph extends View {
 
     private Rectangle2D drawUnitRect(Graphics2D g2D, int unit, double unitLength){
         String dateBase = dateFormat.format(startDate);
-        dateBase = dateBase.substring(0, dateBase.length() - 6);
-        String currentDateStringDay = dateBase + String.format("%02d", unit);
+        String currentDateStringDay;
+        if(!isDayView){
+            dateBase = dateBase.substring(0, dateBase.length() - 6);
+            currentDateStringDay = dateBase + String.format("%02d", unit);
+        }
+        else{
+            dateBase = dateBase.substring(0, dateBase.length() - 6);
+//            day hardcoded
+            currentDateStringDay = dateBase + "10" + String.format("%02d", unit);
+        }
 
         double currentX = xAxis.getX1() + (unit - 1) * unitLength;
         Rectangle2D currentRect = dayRects.get(unit - 1);
         currentRect.setRect(currentX, xAxis.getY1(), unitLength, graphBackground.getHeight() * 0.03);
 
+        double percentage = 0.0;
         if(numNewsArticles > 0){
-            double percentage = (double)(currentNewsArticlesDay.getOrDefault(currentDateStringDay, new HashSet<>()).size())
-                    / (double)(numNewsArticles) * 100.0;
+            if(!isDayView) {
+                percentage = (double)(currentNewsArticlesDay.getOrDefault(currentDateStringDay, new HashSet<>()).size())
+                        / (double)(numNewsArticles) * 100.0;
+            }
+            else {
+
+                int numNewsArticlesThisDay = currentNewsArticlesDay.getOrDefault(currentDateStringDay.substring(0, currentDateStringDay.length() -2), new HashSet<>()).size();
+                percentage = (double)(currentNewsArticlesHour.getOrDefault(currentDateStringDay, new HashSet<>()).size())
+                        / (double)(numNewsArticlesThisDay) * 100.0;
+            }
+
+            System.out.println(currentDateStringDay);
 
             if(percentage < 1.0){
                 g2D.setColor(Color.WHITE);
