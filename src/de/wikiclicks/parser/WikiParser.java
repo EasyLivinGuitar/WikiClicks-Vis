@@ -10,15 +10,17 @@ public class WikiParser {
     public WikiArticle parseLine(String line, String date){
         WikiArticle article = null;
         String[] attrib = line.split(" ");
-        String title = null;
 
-        if(Long.parseLong(attrib[2]) < 3){
+        Long clicks = Long.parseLong(attrib[2]);
+
+        if(clicks < 3){
             return null;
         }
 
+        String title = null;
+
         try {
             title = URLDecoder.decode(attrib[1].replace("_"," "), "UTF-8");
-            title = title.toLowerCase();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e){
@@ -26,15 +28,15 @@ public class WikiParser {
         }
 
         if(title != null){
+            title = title.toLowerCase();
             article = new WikiArticle(title);
         }
 
         if(article != null){
-            article.addClickStat(date, Long.parseLong(attrib[2]));
+            article.addClickStat(date, clicks);
         }
 
         return article;
-
     }
 
     public void parseFile(File file, PersistentArticleStorage articleStorage){
@@ -52,19 +54,15 @@ public class WikiParser {
                 WikiArticle parsedArticle = parseLine(line, date);
 
                 if(parsedArticle != null){
-                    if(articleStorage.containsTitle(parsedArticle.getTitle())){
-                        WikiArticle existingArticle = articleStorage.get(parsedArticle.getTitle());
+                    WikiArticle existingArticle = articleStorage.get(parsedArticle.getTitle());
 
-                        if(existingArticle != null){
-                            Long existingClicksonHour = existingArticle.getClicksOnHour(date);
+                    if(existingArticle != null){
+                        Long existingClicksOnHour = existingArticle.getClicksOnHour(date);
 
-                            if(existingClicksonHour == null)
-                                existingArticle.merge(parsedArticle);
-                            else if(parsedArticle.getClicksOnHour(date) > existingClicksonHour)
-                                existingArticle.replace(parsedArticle);
-
-                        }
-
+                        if(existingClicksOnHour == null)
+                            existingArticle.merge(parsedArticle);
+                        else if(parsedArticle.getClicksOnHour(date) > existingClicksOnHour)
+                            existingArticle.replace(parsedArticle);
 
                         articleStorage.replaceArticle(existingArticle);
                     }

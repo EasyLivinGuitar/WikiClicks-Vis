@@ -6,12 +6,16 @@ import org.rocksdb.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PersistentArticleStorage {
     private String filesDir;
     private static RocksDB articleStore;
 
     private boolean filled;
+
+    private WriteOptions writeOptions;
 
     public PersistentArticleStorage(String filesDir){
         this.filesDir = filesDir;
@@ -49,12 +53,11 @@ public class PersistentArticleStorage {
 
     public void store(WikiArticle article){
         try {
-            byte[] serialArticle = articleStore.get(article.getTitle().getBytes());
+            byte[] serialArticle = Serializer.serialize(article);
 
-            if(serialArticle == null){
-                articleStore.put(article.getTitle().getBytes(),
-                        Serializer.serialize(article));
-            }
+            articleStore.put(article.getTitle().getBytes(),
+                    serialArticle);
+
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
@@ -81,6 +84,34 @@ public class PersistentArticleStorage {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<WikiArticle> getTop(int numTop){
+        List<WikiArticle> top = new ArrayList<>(numTop);
+        top.add(new WikiArticle("dummy"));
+
+        RocksIterator iterator = articleStore.newIterator();
+
+        for(iterator.seekToFirst(); iterator.isValid(); iterator.next()){
+            WikiArticle current = (WikiArticle) Serializer.deserialize(iterator.value());
+            Long totalClicks = current.getTotalClicks();
+
+            if(totalClicks > top.get(top.size() - 1).getTotalClicks()){
+                for(int i = 0; i < top.size(); i++){
+                    if(top.get(i).getTotalClicks() <= totalClicks){
+                        top.add(i, current);
+                        break;
+                    }
+                }
+
+                top = new ArrayList<>(top.subList(0, Math.min(numTop, top.size())));
+            }
+
+        }
+
+        iterator.close();
+
+        return top;
     }
 
     public boolean containsTitle(String title){
@@ -144,5 +175,9 @@ public class PersistentArticleStorage {
         iterator.close();
 
         return count;
+    }
+
+    public RocksIterator iterator(){
+        return articleStore.newIterator();
     }
 }

@@ -4,13 +4,16 @@ import de.wikiclicks.controller.ClicksGraphMouseController;
 import de.wikiclicks.datastructures.EntityIndex;
 import de.wikiclicks.datastructures.GlobalSettings;
 import de.wikiclicks.datastructures.PersistentArticleStorage;
+import de.wikiclicks.datastructures.WikiArticle;
 import de.wikiclicks.gui.GUI;
 import de.wikiclicks.listener.ArticleListener;
 import de.wikiclicks.parser.NewsParser;
 import de.wikiclicks.parser.WikiParser;
+import de.wikiclicks.utils.Serializer;
 import de.wikiclicks.views.View;
 import de.wikiclicks.views.ViewClicksGraph;
 import de.wikiclicks.views.ViewPieNews;
+import org.rocksdb.RocksIterator;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -32,6 +35,10 @@ public class WikiClicks {
         gui = new GUI();
         views = new ArrayList<>();
         globalSettings = new GlobalSettings();
+    }
+
+    private boolean isValid(WikiArticle article){
+        return article.isValid();
     }
 
     private GUI initGUI() {
@@ -90,6 +97,7 @@ public class WikiClicks {
         wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage");
 
         if(!wikiArticleStorage.isFilled()){
+//            System.out.println();
             File wikiDir = new File("/media/kipu5728/92e4d620-8187-4d97-a7bb-ecbe1408e352/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
             WikiParser parser = new WikiParser();
 
@@ -105,11 +113,34 @@ public class WikiClicks {
                     wikiArticleStorage.flush();
                 }
 
+                System.out.println("Finalize...");
+                RocksIterator iterator = wikiArticleStorage.iterator();
+
+                for(iterator.seekToFirst(); iterator.isValid(); iterator.next()){
+                    WikiArticle article = (WikiArticle) Serializer.deserialize(iterator.value());
+
+                    article.preCalculateValues();
+
+                    if(!article.isValid()){
+                        System.out.println("ERROR: Not Valid");
+                    }
+
+                    wikiArticleStorage.replaceArticle(article);
+                }
+
+                iterator.close();
+
                 wikiArticleStorage.setFilled();
             }
         }
 
         globalSettings.currentArticle = wikiArticleStorage.get("white house");
+
+        /*List<WikiArticle> topClicks = wikiArticleStorage.getTop(10);
+        for(int i = 0; i < topClicks.size(); i++){
+            System.out.println(i+": "+topClicks.get(i).getTitle()+", "+topClicks.get(i).getTotalClicks());
+        }*/
+
         System.out.println("Done. "/*+wikiArticleStorage.size()+ " articles initialized."*/);
     }
 
@@ -136,7 +167,6 @@ public class WikiClicks {
         clicksGraph.addMouseMotionListener(controller);
 
         return clicksGraph;
-
     }
 
     public static void main(String[] args) {

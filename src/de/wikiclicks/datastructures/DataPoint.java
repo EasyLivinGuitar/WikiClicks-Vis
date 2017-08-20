@@ -7,11 +7,8 @@ public class DataPoint {
     private double x, y;
     private Long value;
 
-    private boolean highlighted;
-
     public DataPoint(){
         drawGeom = new Ellipse2D.Double();
-        highlighted = false;
     }
 
     public void setCoord(double x, double y){
@@ -47,35 +44,5 @@ public class DataPoint {
 
     public double getY(){
         return y;
-    }
-
-    public void setHighlighted(boolean highlighted){
-        this.highlighted = highlighted;
-    }
-
-    public boolean isHighlighted(){
-        return highlighted;
-    }
-
-    public boolean listenForHighlighting(double mouseX, double mouseY){
-        double distance = Math.sqrt(Math.pow(x - mouseX, 2) + Math.pow(y - mouseY, 2));
-        boolean changed = false;
-
-        if(distance < 5.0){
-            if(!highlighted){
-                changed = true;
-            }
-
-            highlighted = true;
-        }
-        else{
-            if(highlighted){
-                changed = true;
-            }
-
-            highlighted = false;
-        }
-
-        return changed;
     }
 }
