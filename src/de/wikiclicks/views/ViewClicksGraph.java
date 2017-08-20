@@ -16,6 +16,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
+import static java.awt.Font.PLAIN;
+
 
 public class ViewClicksGraph extends View {
     private PersistentArticleStorage wikiArticleStorage;
@@ -38,6 +40,8 @@ public class ViewClicksGraph extends View {
     private Line2D xAxis, yAxis;
     private List<Rectangle2D> dayRects;
 
+    private Rectangle2D legendField;
+
     private List<DataPoint> dataPoints;
     private List<Line2D> dataLines;
 
@@ -57,6 +61,7 @@ public class ViewClicksGraph extends View {
 
         graphBackground = new Rectangle2D.Double();
         titleField = new Rectangle2D.Double();
+        legendField = new Rectangle2D.Double();
         xAxis = new Line2D.Double();
         yAxis = new Line2D.Double();
 
@@ -229,7 +234,7 @@ public class ViewClicksGraph extends View {
                 g2D.drawString(value, (int)dataPoint.getX() - g2D.getFontMetrics().stringWidth(value) - 5, (int) dataPoint.getY() - 5);
 
                 g2D.setColor(Color.RED);
-                g2D.setFont(g2D.getFont().deriveFont(Font.PLAIN));
+                g2D.setFont(g2D.getFont().deriveFont(PLAIN));
             }
             else{
                 g2D.setColor(Color.GRAY);
@@ -238,6 +243,8 @@ public class ViewClicksGraph extends View {
             g2D.fill(centerEllipse);
             g2D.draw(centerEllipse);
         }
+
+        drawLegend(g2D);
     }
 
     public DataPoint getRelevantDataPoint(int mouseX){
@@ -297,7 +304,7 @@ public class ViewClicksGraph extends View {
         y = titleField.getY() + 40;
 
         g2D.drawString(title, (int)(x), (int) y);
-        g2D.setFont(font.deriveFont(Font.PLAIN).deriveFont(25.0f));
+        g2D.setFont(font.deriveFont(PLAIN).deriveFont(25.0f));
 
         String formattedStartDate = "";
         String formattedEndDate = "";
@@ -418,6 +425,145 @@ public class ViewClicksGraph extends View {
         );
 
         return currentRect;
+    }
+
+    private void drawLegend(Graphics2D g2D){
+
+        double width = graphBackground.getWidth();
+        double height = graphBackground.getHeight() * 0.3;
+
+        double x = graphBackground.getX() + (graphBackground.getWidth() - width) / 2.0;
+        double y = graphBackground.getY() + (graphBackground.getHeight() + height * 0.03);
+
+        legendField.setRect(x, y, width, height);
+
+        g2D.setColor(Color.LIGHT_GRAY);
+        g2D.fill(legendField);
+
+        g2D.draw(legendField);
+
+        g2D.setColor(Color.BLACK);
+
+        String captionColors = "Percentage of news articles per";
+        String clicks = "Total number of clicks";
+        String news = "Total number of news articles";
+        String least = "Least: ";
+        String most = "Most: ";
+
+        if(!isDayView){
+            captionColors = captionColors + " day (out of all)";
+            clicks = clicks + " for this month: ";
+            news = news + " for this month: ";
+        }
+        else{
+            captionColors = captionColors + " hour (out of all)";
+            clicks = clicks + " for this day: ";
+            news = news + " for this day: ";
+        }
+
+        x = legendField.getX() + 5;
+        y = legendField.getY() + 15;
+
+        Font font = g2D.getFont();
+        font = font.deriveFont(Font.BOLD);
+        g2D.setFont(font);
+
+//        clicks statistics
+        g2D.drawString(clicks, (int) x, (int) y);
+
+        double fontSize = font.getSize();
+
+        y += fontSize + 2;
+        g2D.drawString(most, (int) x, (int) y);
+
+
+        y += fontSize + 2;
+        g2D.drawString(least, (int) x, (int) y);
+
+//        news statistics
+        x = legendField.getCenterX() + 5;
+        y = legendField.getY() + 15;
+
+        g2D.drawString(news, (int) x, (int) y);
+
+        y += fontSize + 2;
+        g2D.drawString(most, (int) x, (int) y);
+
+
+        y += fontSize + 2;
+        g2D.drawString(least, (int) x, (int) y);
+
+// color legend
+        x = legendField.getX();
+
+        y += 3 * (fontSize + 2);
+
+        g2D.drawString(captionColors, (int) x, (int) y);
+
+        y += 10;
+
+        int rectWidth = 20;
+        int rectHeight = 15;
+
+        g2D.setFont(font.deriveFont(Font.PLAIN));
+
+//        white
+        Rectangle2D white = new Rectangle2D.Double(x, y, rectWidth, rectHeight);
+        g2D.setColor(Color.WHITE);
+        g2D.fill(white);
+        g2D.setColor(Color.BLACK);
+        g2D.draw(white);
+
+        y += fontSize;
+        x += rectWidth + 4;
+        g2D.drawString( " less than 1%", (int) x, (int) y);
+
+//        light pink
+        y += fontSize + 2;
+        x = legendField.getX();
+
+        Rectangle2D light = new Rectangle2D.Double(x, y, rectWidth, rectHeight);
+        g2D.setColor(Color.PINK);
+        g2D.fill(light);
+        g2D.setColor(Color.BLACK);
+        g2D.draw(light);
+
+        y += fontSize;
+        x += rectWidth + 4;
+        g2D.drawString( " between 1% and 5%", (int) x, (int) y);
+
+//        dark pink
+
+        y -= (fontSize * 3 + 2);
+        x = legendField.getCenterX() * 0.38;
+
+        Rectangle2D dark = new Rectangle2D.Double(x, y, rectWidth, rectHeight);
+        g2D.setColor(new Color(239, 77, 84));
+        g2D.fill(dark);
+        g2D.setColor(Color.BLACK);
+        g2D.draw(dark);
+
+        y += fontSize;
+        x += rectWidth + 4;
+        g2D.drawString( " between 5% and 10%", (int) x, (int) y);
+
+//        red
+        y += fontSize + 2;
+        x = legendField.getCenterX() * 0.38;
+
+        Rectangle2D red = new Rectangle2D.Double(x, y, rectWidth, rectHeight);
+        g2D.setColor(Color.RED);
+        g2D.fill(red);
+        g2D.setColor(Color.BLACK);
+        g2D.draw(red);
+
+        y += fontSize;
+        x += rectWidth + 4;
+        g2D.drawString( " over 10%", (int) x, (int) y);
+
+
+
+
     }
 
     @Override
