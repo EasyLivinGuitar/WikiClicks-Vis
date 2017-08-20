@@ -426,11 +426,16 @@ public class ViewClicksGraph extends View {
         String news = "Total number of news articles";
         String least = "Least: ";
         String most = "Most: ";
+        String mostClicks = most;
+        String mostNews = most;
+        String leastClicks = least;
+        String leastNews = least;
 
         if(!isDayView){
             captionColors = captionColors + " day (out of all)";
-            clicks = clicks + " for this month: ";
+            clicks = clicks + " for this month: " + WikiClicks.globalSettings.currentArticle.getTotalClicks();
             news = news + " for this month: ";
+            mostClicks = most + WikiClicks.globalSettings.currentArticle.getMaxOfMonth(displayedMonth);
         }
         else{
             captionColors = captionColors + " hour (out of all)";
@@ -451,11 +456,11 @@ public class ViewClicksGraph extends View {
         double fontSize = font.getSize();
 
         y += fontSize + 2;
-        g2D.drawString(most, (int) x, (int) y);
+        g2D.drawString(mostClicks, (int) x, (int) y);
 
 
         y += fontSize + 2;
-        g2D.drawString(least, (int) x, (int) y);
+        g2D.drawString(leastClicks, (int) x, (int) y);
 
 //        news statistics
         x = legendField.getCenterX() + 5;
@@ -464,11 +469,11 @@ public class ViewClicksGraph extends View {
         g2D.drawString(news, (int) x, (int) y);
 
         y += fontSize + 2;
-        g2D.drawString(most, (int) x, (int) y);
+        g2D.drawString(mostNews, (int) x, (int) y);
 
 
         y += fontSize + 2;
-        g2D.drawString(least, (int) x, (int) y);
+        g2D.drawString(leastNews, (int) x, (int) y);
 
 // color legend
         x = legendField.getX();
