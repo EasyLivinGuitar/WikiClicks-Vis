@@ -1,6 +1,5 @@
 package de.wikiclicks.controller;
 
-import de.wikiclicks.datastructures.DataPoint;
 import de.wikiclicks.views.ViewClicksGraph;
 
 import java.awt.event.MouseEvent;
@@ -16,7 +15,7 @@ public class ClicksGraphMouseController implements MouseListener, MouseMotionLis
 
     @Override
     public void mouseClicked(MouseEvent e) {
-
+        view.setDayGraph(e.getX(), e.getY());
     }
 
     @Override
@@ -47,13 +46,6 @@ public class ClicksGraphMouseController implements MouseListener, MouseMotionLis
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        DataPoint point = view.getRelevantDataPoint(e.getX());
-
-        if(point != null){
-            if(point.listenForHighlighting(e.getX(), e.getY())){
-                view.repaint();
-            }
-        }
-
+        view.setHighlightedUnit(e.getX(), e.getY());
     }
 }

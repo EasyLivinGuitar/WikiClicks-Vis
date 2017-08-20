@@ -14,11 +14,12 @@ public class DateComparator implements Comparator<String>, Serializable {
 
     @Override
     public int compare(String o1, String o2) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+        SimpleDateFormat format = new SimpleDateFormat(this.format);
+
         try {
-            return dateFormat.parse(o1).compareTo(dateFormat.parse(o2));
+            return format.parse(o1).compareTo(format.parse(o2));
         } catch (ParseException e) {
-            System.out.println("ERROR: \"" + o1 + "\" or \"" + o2 + "\" does not match " + dateFormat.toPattern());
+            System.out.println("ERROR: \"" + o1 + "\" or \"" + o2 + "\" does not match " + format.toPattern());
         }
 
         return 0;
