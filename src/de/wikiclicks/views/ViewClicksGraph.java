@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,6 +31,9 @@ public class ViewClicksGraph extends View {
     private Date startDate;
     private Date endDate;
 
+    private String displayedMonth;
+    private String displayedDay;
+
     private Rectangle2D graphBackground;
     private Rectangle2D titleField;
     private Line2D xAxis, yAxis;
@@ -42,8 +46,7 @@ public class ViewClicksGraph extends View {
 
     private boolean isDayView = false;
 
-    private String displayedMonth;
-    private String displayedDay;
+    private int mouseX, mouseY;
 
     public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage, EntityIndex newsEntityIndex){
         setLayout(new FlowLayout());
@@ -93,8 +96,7 @@ public class ViewClicksGraph extends View {
     private void initNewsArticles(){
         Set<NewsArticle> articles = this.newsEntityIndex.get(currentWikiArticle.getTitle());
         SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        SimpleDateFormat outputFormatDay = new SimpleDateFormat("yyyyMMdd");
-        SimpleDateFormat outputFormatHour = new SimpleDateFormat("yyyyMMddHH");
+
         numNewsArticles = 0;
 
         currentNewsArticlesDay.clear();
@@ -105,7 +107,7 @@ public class ViewClicksGraph extends View {
             try {
                 date = inputFormat.parse(article.getPublished());
 
-                if(date.compareTo(outputFormatHour.parse("2015090100")) < 0){
+                if(date.compareTo(WikiClicks.globalSettings.hourFormat.parse("201509010000")) < 0){
                     date = null;
                 }
             } catch (ParseException e) {
@@ -114,11 +116,11 @@ public class ViewClicksGraph extends View {
 
             if(date != null){
                 numNewsArticles++;
-                currentNewsArticlesDay.putIfAbsent(outputFormatDay.format(date), new HashSet<>());
-                currentNewsArticlesDay.get(outputFormatDay.format(date)).add(article);
+                currentNewsArticlesDay.putIfAbsent(WikiClicks.globalSettings.dayFormat.format(date), new HashSet<>());
+                currentNewsArticlesDay.get(WikiClicks.globalSettings.dayFormat.format(date)).add(article);
 
-                currentNewsArticlesHour.putIfAbsent(outputFormatHour.format(date), new HashSet<>());
-                currentNewsArticlesHour.get(outputFormatHour.format(date)).add((article));
+                currentNewsArticlesHour.putIfAbsent(WikiClicks.globalSettings.hourFormat.format(date), new HashSet<>());
+                currentNewsArticlesHour.get(WikiClicks.globalSettings.hourFormat.format(date)).add((article));
             }
         }
     }
@@ -215,64 +217,7 @@ public class ViewClicksGraph extends View {
             Ellipse2D centerEllipse = dataPoint.getDrawGeom();
 
             if(highlightedUnit != null && highlightedUnit == i - 1){
-                g2D.setColor(Color.GRAY);
-                g2D.setStroke(new BasicStroke(
-                        0.5f,
-                        BasicStroke.CAP_SQUARE,
-                        BasicStroke.JOIN_MITER,
-                        1,
-                        new float[]{4.0f},
-                        0));
-
-                g2D.drawLine(
-                        (int) dataPoint.getX(),
-                        (int) dataPoint.getY(),
-                        (int) dataPoint.getX(),
-                        (int) xAxis.getY1()
-                );
-
-                g2D.setStroke(new BasicStroke(1.0f));
-
-                if(highlightedUnit - 1 >= 0){
-                    double heightL = (dataPoints.get(highlightedUnit).getY() + dataPoints.get(highlightedUnit - 1).getY()) / 2.0;
-
-                    g2D.drawLine(
-                            (int) unitRects.get(highlightedUnit).getX(),
-                            (int) heightL,
-                            (int) unitRects.get(highlightedUnit).getX(),
-                            (int) xAxis.getY1()
-                    );
-                }
-
-                if(highlightedUnit + 1 < dataPoints.size()){
-                    double heightR = (dataPoints.get(highlightedUnit).getY() + dataPoints.get(highlightedUnit + 1).getY()) / 2.0;
-
-                    g2D.drawLine(
-                            (int) unitRects.get(highlightedUnit).getMaxX(),
-                            (int) heightR,
-                            (int) unitRects.get(highlightedUnit).getMaxX(),
-                            (int) xAxis.getY1()
-                    );
-                }
-
-                String value = String.valueOf(dataPoint.getValue());
-
-                g2D.setColor(new Color(0.95f, 0.95f, 0.95f));
-                g2D.setFont(g2D.getFont().deriveFont(Font.BOLD));
-
-                Rectangle2D rect = new Rectangle2D.Double(
-                        (int)dataPoint.getX() - g2D.getFontMetrics().stringWidth(value) - 10,
-                        (int)dataPoint.getY() - g2D.getFontMetrics().getHeight() - 10,
-                        g2D.getFontMetrics().stringWidth(value) + 10,
-                        g2D.getFontMetrics().getHeight() + 10) ;
-
-
-                g2D.fill(rect);
-                g2D.setColor(Color.WHITE);
-                g2D.draw(rect);
-
-                g2D.setColor(Color.BLACK);
-                g2D.drawString(value, (int)dataPoint.getX() - g2D.getFontMetrics().stringWidth(value) - 5, (int) dataPoint.getY() - 5);
+                drawHighlighting(g2D);
 
                 g2D.setColor(Color.RED);
                 g2D.setFont(g2D.getFont().deriveFont(Font.PLAIN));
@@ -452,7 +397,131 @@ public class ViewClicksGraph extends View {
         return currentRect;
     }
 
+    private void drawHighlighting(Graphics2D g2D){
+        g2D.setColor(Color.GRAY);
+        g2D.setStroke(new BasicStroke(
+                0.5f,
+                BasicStroke.CAP_SQUARE,
+                BasicStroke.JOIN_MITER,
+                1,
+                new float[]{4.0f},
+                0));
+
+        g2D.drawLine(
+                (int) dataPoints.get(highlightedUnit).getX(),
+                (int) dataPoints.get(highlightedUnit).getY(),
+                (int) dataPoints.get(highlightedUnit).getX(),
+                (int) xAxis.getY1()
+        );
+
+        g2D.setStroke(new BasicStroke(1.0f));
+
+        if(highlightedUnit - 1 >= 0){
+            double heightL = (dataPoints.get(highlightedUnit).getY() + dataPoints.get(highlightedUnit - 1).getY()) / 2.0;
+
+            g2D.drawLine(
+                    (int) unitRects.get(highlightedUnit).getX(),
+                    (int) heightL,
+                    (int) unitRects.get(highlightedUnit).getX(),
+                    (int) xAxis.getY1()
+            );
+        }
+
+        if(highlightedUnit + 1 < dataPoints.size()){
+            double heightR = (dataPoints.get(highlightedUnit).getY() + dataPoints.get(highlightedUnit + 1).getY()) / 2.0;
+
+            g2D.drawLine(
+                    (int) unitRects.get(highlightedUnit).getMaxX(),
+                    (int) heightR,
+                    (int) unitRects.get(highlightedUnit).getMaxX(),
+                    (int) xAxis.getY1()
+            );
+        }
+
+
+        RoundRectangle2D infoBox = new RoundRectangle2D.Double(
+                dataPoints.get(highlightedUnit).getX() - 150.0 - unitRects.get(0).getWidth(),
+                mouseY,
+                150.0,
+                160.0,
+                5.0,
+                5.0
+        );
+
+        g2D.setColor(new Color(30, 30, 30, 230));
+        g2D.fill(infoBox);
+
+        g2D.draw(infoBox);
+
+        String highlightedDate = displayedMonth + String.format("%02d", highlightedUnit + 1);
+        String formattedDate = "";
+
+        SimpleDateFormat outFormat = new SimpleDateFormat("dd/MM/yyyy");
+        try {
+            formattedDate = outFormat.format(WikiClicks.globalSettings.dayFormat.parse(highlightedDate));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        g2D.setColor(Color.WHITE);
+        g2D.setFont(g2D.getFont().deriveFont(Font.BOLD).deriveFont(15.0f));
+
+        g2D.drawString(formattedDate, (int)infoBox.getX() + 10, (int) (infoBox.getY() + 10 + g2D.getFontMetrics().getHeight()));
+
+        String clicks = String.valueOf(dataPoints.get(highlightedUnit).getValue());
+        g2D.drawString(
+                "Wiki-Clicks: ",
+                (int)infoBox.getX() + 10,
+                (int) (infoBox.getY() + 10 + 3 * g2D.getFontMetrics().getHeight())
+        );
+
+        g2D.drawString(
+                clicks,
+                (int)infoBox.getX() + 10,
+                (int) (infoBox.getY() + 10 + 4 * g2D.getFontMetrics().getHeight())
+        );
+
+        g2D.drawString(
+                "News-Articles: ",
+                (int)infoBox.getX() + 10,
+                (int) (infoBox.getY() + 10 + 6 * g2D.getFontMetrics().getHeight())
+        );
+
+        String articles = String.valueOf(currentNewsArticlesDay.getOrDefault(highlightedDate,new HashSet<>()).size());
+        g2D.drawString(
+                articles,
+                (int)infoBox.getX() + 10,
+                (int) (infoBox.getY() + 10 + 7 * g2D.getFontMetrics().getHeight())
+        );
+
+        g2D.setFont(g2D.getFont().deriveFont(12.0f));
+
+        /*g2D.setColor(new Color(0.95f, 0.95f, 0.95f));
+        g2D.setFont(g2D.getFont().deriveFont(Font.BOLD));
+
+        Rectangle2D rect = new Rectangle2D.Double(
+                (int)dataPoints.get(highlightedUnit).getX() - g2D.getFontMetrics().stringWidth(value) - 10,
+                (int)dataPoints.get(highlightedUnit).getY() - g2D.getFontMetrics().getHeight() - 10,
+                g2D.getFontMetrics().stringWidth(value) + 10,
+                g2D.getFontMetrics().getHeight() + 10) ;
+
+
+        g2D.fill(rect);
+        g2D.setColor(Color.WHITE);
+        g2D.draw(rect);
+
+        g2D.setColor(Color.BLACK);
+        g2D.drawString(
+                value,
+                (int)dataPoints.get(highlightedUnit).getX() - g2D.getFontMetrics().stringWidth(value) - 5,
+                (int) dataPoints.get(highlightedUnit).getY() - 5
+        );*/
+    }
+
     public void setHighlightedUnit(int mouseX, int mouseY){
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
+
         if(mouseY < xAxis.getY1() && mouseY > yAxis.getY2()){
             double dayLength = unitRects.get(0).getWidth();
             int index = (int) ((mouseX - yAxis.getX1()) / dayLength);
