@@ -40,13 +40,10 @@ public class ViewClicksGraph extends View {
     private List<DataPoint> dataPoints;
     private List<Line2D> dataLines;
 
-    private boolean isDayView = true;
+    private boolean isDayView = false;
 
-    //TODO: Replace hardcoded values
     private String displayedMonth;
     private String displayedDay;
-
-//    private Date chosenDate;
 
     public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage, EntityIndex newsEntityIndex){
         setLayout(new FlowLayout());
