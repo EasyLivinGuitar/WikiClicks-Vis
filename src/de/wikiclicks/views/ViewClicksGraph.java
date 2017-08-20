@@ -40,7 +40,7 @@ public class ViewClicksGraph extends View {
     private List<DataPoint> dataPoints;
     private List<Line2D> dataLines;
 
-    private boolean isDayView = false;
+    private boolean isDayView = true;
 
     //TODO: Replace hardcoded values
     private String displayedMonth;
@@ -417,7 +417,6 @@ public class ViewClicksGraph extends View {
                         / (double)(numNewsArticles) * 100.0;
             }
             else {
-
                 int numNewsArticlesThisDay = currentNewsArticlesDay.getOrDefault(currentDateString.substring(0, currentDateString.length() -2), new HashSet<>()).size();
                 percentage = (double)(currentNewsArticlesHour.getOrDefault(currentDateString, new HashSet<>()).size())
                         / (double)(numNewsArticlesThisDay) * 100.0;
