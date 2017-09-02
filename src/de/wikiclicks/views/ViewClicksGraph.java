@@ -6,12 +6,13 @@ import de.wikiclicks.utils.DateComparator;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.math.util.MathUtils;
 
-import javax.swing.*;
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -53,11 +54,12 @@ public class ViewClicksGraph extends View {
 
     private int mouseX, mouseY;
 
+    private Image backwardIcon, forwardIcon;
+
+//    private JButton goBackwardsButton, goForwardButton;
+
     public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage, Index<NewsArticle> newsEntityIndex){
         setLayout(new FlowLayout());
-
-        JButton button = new JButton("Pimmel");
-        components.add(button);
 
         this.wikiArticleStorage = wikiArticleStorage;
         this.newsEntityIndex = newsEntityIndex;
@@ -100,6 +102,23 @@ public class ViewClicksGraph extends View {
 
         highlightedUnit = null;
 
+        /*goBackwardsButton = new JButton();
+        goBackwardsButton.setMargin(new Insets(0, 0, 0, 0));
+        goBackwardsButton.setBackground(new Color(0, 0, 0, 0) Color.BLACK);*/
+
+        try {
+            backwardIcon = ImageIO.read(getClass().getResource("/icons/left-arrow.png"));
+            forwardIcon = ImageIO.read(getClass().getResource("/icons/right-arrow.png"));
+//            goBackwardsButton.setIcon(new ImageIcon(backwardIcon.getScaledInstance(25, 25, Image.SCALE_SMOOTH)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+       /* goBackwardsButton.setVisible(true);
+        goBackwardsButton.setBounds(0, 0, 25, 25);
+
+        add(goBackwardsButton);*/
+
         initNewsArticles();
     }
 
@@ -137,10 +156,25 @@ public class ViewClicksGraph extends View {
     }
 
     @Override
+    public Dimension getPreferredSize(){
+        return new Dimension(500, 500);
+    }
+
+    @Override
+    public void paintComponents(Graphics g){
+        super.paintComponents(g);
+
+        System.out.println("PAINT COMPONENTS");
+    }
+
+    @Override
     public void paint(Graphics g){
+        super.paint(g);
+
         Graphics2D g2D = (Graphics2D) g;
         g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2D.clearRect(0, 0, getWidth(), getHeight());
+
 
         float maxGraph = 0;
         double stepWidth = 0;
@@ -322,6 +356,15 @@ public class ViewClicksGraph extends View {
         y = titleField.getY() + 80;
 
         g2D.drawString(dateString, (int) x, (int) y);
+
+        if(isDayView){
+            g2D.drawImage(backwardIcon, (int)x - 50, (int) y - 23, 28, 28, Color.WHITE, null);
+
+            g2D.drawImage(forwardIcon, (int)x + stringOffset + 50 - 28, (int) y - 23, 28, 28, Color.WHITE, null);
+        }
+
+
+//        goBackwardsButton.setBounds((int) x - 50, (int) y, 25, 25);
 
     }
 

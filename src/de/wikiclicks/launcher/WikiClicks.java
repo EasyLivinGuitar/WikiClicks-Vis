@@ -32,8 +32,6 @@ public class WikiClicks {
     public static GlobalSettings globalSettings;
 
     private WikiClicks() {
-        gui = new GUI();
-        views = new ArrayList<>();
         globalSettings = new GlobalSettings();
 
         locationBlackList = new HashSet<>();
@@ -53,6 +51,8 @@ public class WikiClicks {
 
     private GUI initGUI() {
         System.out.print("Initialize GUI...");
+        gui = new GUI();
+
         for(View view: views){
             gui.addView(view);
         }
@@ -101,6 +101,7 @@ public class WikiClicks {
 
     private void initViews(){
         System.out.print("Initialize views...");
+        views = new ArrayList<>();
 
         views.add(initClicksGraphView());
         System.out.println("Done. "+views.size()+" views initialized.");
@@ -179,8 +180,6 @@ public class WikiClicks {
                 return !locationBlackList.contains(namedEntity.getNamedEntity());
             }
         });
-
-        System.out.println(entities);
 
         /*System.out.println("\nCleaning...");
         newsEntityIndex.clean(wikiArticleStorage);*/

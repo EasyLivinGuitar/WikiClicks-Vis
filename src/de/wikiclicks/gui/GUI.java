@@ -26,7 +26,7 @@ public class GUI extends JFrame {
 
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
-        add(cardPanel);
+        getContentPane().add(cardPanel);
 
         articleSelectGUI = new ArticleSelectGUI();
 
@@ -55,7 +55,6 @@ public class GUI extends JFrame {
         setGlassPane(articleSelectGUI);
 
         String[] items = viewIdentifier.toArray(new String[viewIdentifier.size()]);
-        System.out.println(items.length);
         JList list = new JList(items);
 
         list.addListSelectionListener(new ListSelectionListener() {
@@ -85,6 +84,14 @@ public class GUI extends JFrame {
         }
 
         cardPanel.add(view, view.getIdentifier());
+//        add(view);
+    }
+
+    @Override
+    public void paintComponents(Graphics g){
+        super.paintComponents(g);
+
+        System.out.println("Test");
     }
 
     public void displayView(String identifier){
