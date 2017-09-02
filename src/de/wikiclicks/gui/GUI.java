@@ -9,11 +9,15 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class GUI extends JFrame {
     private CardLayout cardLayout;
     private JPanel cardPanel;
     private ArticleSelectGUI articleSelectGUI;
+
+    private Set<String> viewIdentifier;
 
     public GUI(){
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -26,6 +30,10 @@ public class GUI extends JFrame {
 
         articleSelectGUI = new ArticleSelectGUI();
 
+        viewIdentifier = new LinkedHashSet<>();
+    }
+
+    public void initComponents(){
         initUIComponents();
     }
 
@@ -46,7 +54,8 @@ public class GUI extends JFrame {
 
         setGlassPane(articleSelectGUI);
 
-        String[] items = {"clicks-graph", "test", "pie"};
+        String[] items = viewIdentifier.toArray(new String[viewIdentifier.size()]);
+        System.out.println(items.length);
         JList list = new JList(items);
 
         list.addListSelectionListener(new ListSelectionListener() {
@@ -69,6 +78,12 @@ public class GUI extends JFrame {
     }
 
     public void addView(View view){
+        viewIdentifier.add(view.getIdentifier());
+
+        for(JComponent component: view.getUIComponents()){
+            add(component);
+        }
+
         cardPanel.add(view, view.getIdentifier());
     }
 

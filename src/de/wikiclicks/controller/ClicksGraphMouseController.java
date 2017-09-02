@@ -20,9 +20,6 @@ public class ClicksGraphMouseController implements MouseListener, MouseMotionLis
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if(e.getButton() == MouseEvent.BUTTON3){
-            view.triggerPopup(e.getXOnScreen(), e.getYOnScreen());
-        }
     }
 
     @Override

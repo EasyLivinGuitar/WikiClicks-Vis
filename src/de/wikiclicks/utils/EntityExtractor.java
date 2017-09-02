@@ -3,10 +3,12 @@ package de.wikiclicks.utils;
 import edu.stanford.nlp.ie.AbstractSequenceClassifier;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.util.Triple;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -86,36 +88,24 @@ public class EntityExtractor {
         Set<String> entities = new HashSet<>();
         text = text.replaceAll("\n", "").replaceAll("[^A-Za-z0-9]"," ");
 
-        String classified = classifier.classifyToString(text);
+        List<Triple<String, Integer, Integer>> classified = classifier.classifyToCharacterOffsets(text);
 
-        String[] classifiedWords = classified.split("[ ]+");
-        StringBuilder builder = new StringBuilder();
-        String lastAnnotation = "";
-
-        for(String annotatedWord: classifiedWords){
-            if(!annotatedWord.isEmpty()){
-                String annotation = annotatedWord.substring(annotatedWord.lastIndexOf("/") +1, annotatedWord.length());
-                String word = annotatedWord.substring(0, annotatedWord.lastIndexOf("/"));
-
-                if(!annotation.equals("O")){
-                    if(lastAnnotation.equals(annotation)){
-                        builder.append(" ").append(word);
-                    }else{
-                        if(!builder.toString().isEmpty()){
-                            entities.add(builder.toString().toLowerCase());
-                            builder = new StringBuilder();
-                        }
-
-                        builder.append(word);
-                    }
-                }
-
-                lastAnnotation = annotation;
-            }
+        for(Triple<String, Integer, Integer> annotation: classified){
+            entities.add(text.substring(annotation.second, annotation.third)
+                    .toLowerCase().trim().replaceAll("[ ]+", " "));
 
         }
 
         return entities;
+    }
+
+    public String getNERTag(String entity){
+        List<Triple<String, Integer, Integer>> classified = classifier.classifyToCharacterOffsets(entity);
+
+        if(classified.size() > 0)
+            return classified.get(0).first;
+
+        return "0";
     }
 
 
@@ -128,7 +118,7 @@ public class EntityExtractor {
                 "He worked as a civil rights attorney and taught constitutional law at the University of Chicago Law School between 1992 and 2004. " +
                 "He served three terms representing the 13th District in the Illinois Senate from 1997 to 2004, " +
                 "and ran unsuccessfully in the Democratic primary for the United States House of Representatives in 2000 against incumbent Bobby Rush.";
-        entityExtractor.getEntities(paragraph);
+        System.out.println(entityExtractor.getEntities(paragraph));
     }
 
 }

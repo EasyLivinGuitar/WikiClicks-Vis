@@ -121,7 +121,7 @@ public class PersistentArticleStorage {
             e.printStackTrace();
         }
 
-        return true;
+        return false;
     }
 
     public void flush(){

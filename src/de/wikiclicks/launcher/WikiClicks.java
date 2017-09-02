@@ -1,10 +1,7 @@
 package de.wikiclicks.launcher;
 
 import de.wikiclicks.controller.ClicksGraphMouseController;
-import de.wikiclicks.datastructures.EntityIndex;
-import de.wikiclicks.datastructures.GlobalSettings;
-import de.wikiclicks.datastructures.PersistentArticleStorage;
-import de.wikiclicks.datastructures.WikiArticle;
+import de.wikiclicks.datastructures.*;
 import de.wikiclicks.gui.GUI;
 import de.wikiclicks.listener.ArticleListener;
 import de.wikiclicks.parser.NewsParser;
@@ -12,22 +9,25 @@ import de.wikiclicks.parser.WikiParser;
 import de.wikiclicks.utils.Serializer;
 import de.wikiclicks.views.View;
 import de.wikiclicks.views.ViewClicksGraph;
-import de.wikiclicks.views.ViewPieNews;
+import io.multimap.Callables;
 import org.rocksdb.RocksIterator;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public class WikiClicks {
     private GUI gui;
     private List<View> views;
 
     private PersistentArticleStorage wikiArticleStorage;
-    private EntityIndex newsEntityIndex;
+    private Index<NewsArticle> newsEntityIndex;
+    private Index<NamedEntity> entityHotnessIndex;
+
+    private Set<String> locationBlackList;
 
     public static GlobalSettings globalSettings;
 
@@ -35,10 +35,20 @@ public class WikiClicks {
         gui = new GUI();
         views = new ArrayList<>();
         globalSettings = new GlobalSettings();
-    }
 
-    private boolean isValid(WikiArticle article){
-        return article.isValid();
+        locationBlackList = new HashSet<>();
+
+        for(String countryString: Locale.getISOCountries()){
+            Locale locale = new Locale("", countryString);
+
+            locationBlackList.add(locale.getDisplayCountry().toLowerCase());
+        }
+
+        for(String languageString: Locale.getISOLanguages()){
+            Locale locale = new Locale(languageString, "");
+
+            locationBlackList.add(locale.getDisplayLanguage().toLowerCase());
+        }
     }
 
     private GUI initGUI() {
@@ -55,6 +65,9 @@ public class WikiClicks {
 
                 if(newsEntityIndex != null)
                     newsEntityIndex.close();
+
+                if(entityHotnessIndex != null)
+                    entityHotnessIndex.close();
             }
         });
 
@@ -79,6 +92,8 @@ public class WikiClicks {
             }
         });
 
+        gui.initComponents();
+
         System.out.println("Done.");
 
         return gui;
@@ -88,7 +103,6 @@ public class WikiClicks {
         System.out.print("Initialize views...");
 
         views.add(initClicksGraphView());
-        views.add(new ViewPieNews());
         System.out.println("Done. "+views.size()+" views initialized.");
     }
 
@@ -145,16 +159,31 @@ public class WikiClicks {
     }
 
     private void initNewsArticles(){
-        System.out.print("Inititalize news articles...");
+        System.out.println("Inititalize news articles:");
         NewsParser parser = new NewsParser();
 
-        newsEntityIndex = parser.index("./data/news-entity-index");
+        System.out.println("Index news article entities...");
+        newsEntityIndex = parser.indexNewsEntities("./data/news-entity-index", wikiArticleStorage);
 
-        /*Set<NewsArticle> articleSet = newsEntityIndex.get("angela merkel");
+        System.out.println("Index news article hotness...");
+        entityHotnessIndex = parser.indexEntityHotness("./data/news-hotness-index", newsEntityIndex);
 
-        for(NewsArticle article: articleSet){
-            System.out.println(article);
-        }*/
+        Set<NamedEntity> entities = entityHotnessIndex.getIf("20150901", new Callables.Predicate() {
+            @Override
+            public boolean call(ByteBuffer bytes) {
+                byte[] value  = new byte[bytes.remaining()];
+                bytes.get(value);
+
+                NamedEntity namedEntity = (NamedEntity) Serializer.deserialize(value);
+
+                return !locationBlackList.contains(namedEntity.getNamedEntity());
+            }
+        });
+
+        System.out.println(entities);
+
+        /*System.out.println("\nCleaning...");
+        newsEntityIndex.clean(wikiArticleStorage);*/
 
         System.out.println("Done. ");
     }

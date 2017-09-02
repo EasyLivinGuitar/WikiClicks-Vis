@@ -6,6 +6,7 @@ import de.wikiclicks.utils.DateComparator;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.math.util.MathUtils;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
@@ -22,7 +23,7 @@ import static java.awt.Font.PLAIN;
 
 public class ViewClicksGraph extends View {
     private PersistentArticleStorage wikiArticleStorage;
-    private EntityIndex newsEntityIndex;
+    private Index<NewsArticle> newsEntityIndex;
 
     private WikiArticle currentWikiArticle;
     private Map<String, Set<NewsArticle>> currentNewsArticlesDay;
@@ -52,8 +53,12 @@ public class ViewClicksGraph extends View {
 
     private int mouseX, mouseY;
 
-    public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage, EntityIndex newsEntityIndex){
+    public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage, Index<NewsArticle> newsEntityIndex){
         setLayout(new FlowLayout());
+
+        JButton button = new JButton("Pimmel");
+        components.add(button);
+
         this.wikiArticleStorage = wikiArticleStorage;
         this.newsEntityIndex = newsEntityIndex;
 
@@ -111,6 +116,7 @@ public class ViewClicksGraph extends View {
             Date date = null;
             try {
                 date = inputFormat.parse(article.getPublished());
+                date.setMinutes(0);
 
                 if(date.compareTo(WikiClicks.globalSettings.hourFormat.parse("201509010000")) < 0){
                     date = null;
@@ -352,7 +358,7 @@ public class ViewClicksGraph extends View {
             currentDateString = displayedMonth + String.format("%02d", unit);
         }
         else{
-            currentDateString = displayedDay + String.format("%02d", unit);
+            currentDateString = displayedDay + String.format("%02d", unit - 1) + "00";
         }
 
         double currentX = xAxis.getX1() + (unit - 1) * unitLength;
@@ -366,9 +372,10 @@ public class ViewClicksGraph extends View {
                         / (double)(numNewsArticles) * 100.0;
             }
             else {
-                int numNewsArticlesThisDay = currentNewsArticlesDay.getOrDefault(currentDateString.substring(0, currentDateString.length() -2), new HashSet<>()).size();
-                percentage = (double)(currentNewsArticlesHour.getOrDefault(currentDateString, new HashSet<>()).size())
-                        / (double)(numNewsArticlesThisDay) * 100.0;
+                int numNewsArticlesThisDay = currentNewsArticlesDay.getOrDefault(currentDateString.substring(0, currentDateString.length() - 4), new HashSet<>()).size();
+                int numNewsArticlesThisHour = currentNewsArticlesHour.getOrDefault(currentDateString, new HashSet<>()).size();
+
+                percentage = (double)(numNewsArticlesThisHour) / (double)(numNewsArticlesThisDay) * 100.0;
             }
 
             if(percentage < 1.0){
@@ -604,15 +611,34 @@ public class ViewClicksGraph extends View {
 
         g2D.draw(infoBox);
 
-        String highlightedDate = displayedMonth + String.format("%02d", highlightedUnit + 1);
+        String highlightedDate = "";
         String formattedDate = "";
 
-        SimpleDateFormat outFormat = new SimpleDateFormat("dd/MM/yyyy");
-        try {
-            formattedDate = outFormat.format(WikiClicks.globalSettings.dayFormat.parse(highlightedDate));
-        } catch (ParseException e) {
-            e.printStackTrace();
+        SimpleDateFormat outFormat = null;
+
+        if(!isDayView){
+            highlightedDate = displayedMonth + String.format("%02d", highlightedUnit + 1);
+
+            outFormat = new SimpleDateFormat("dd/MM/yyyy");
+
+            try {
+                formattedDate = outFormat.format(WikiClicks.globalSettings.dayFormat.parse(highlightedDate));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
         }
+        else{
+            highlightedDate = displayedDay + String.format("%02d", highlightedUnit) + "00";
+
+            outFormat = new SimpleDateFormat("HH:mm");
+
+            try {
+                formattedDate = outFormat.format(WikiClicks.globalSettings.hourFormat.parse(highlightedDate));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
 
         g2D.setColor(Color.WHITE);
         g2D.setFont(g2D.getFont().deriveFont(Font.BOLD).deriveFont(15.0f));
@@ -638,7 +664,13 @@ public class ViewClicksGraph extends View {
                 (int) (infoBox.getY() + 10 + 6 * g2D.getFontMetrics().getHeight())
         );
 
-        String articles = String.valueOf(currentNewsArticlesDay.getOrDefault(highlightedDate,new HashSet<>()).size());
+        String articles;
+
+        if(!isDayView)
+            articles = String.valueOf(currentNewsArticlesDay.getOrDefault(highlightedDate,new HashSet<>()).size());
+        else
+            articles = String.valueOf(currentNewsArticlesHour.getOrDefault(highlightedDate,new HashSet<>()).size());
+
         g2D.drawString(
                 articles,
                 (int)infoBox.getX() + 10,
@@ -646,27 +678,6 @@ public class ViewClicksGraph extends View {
         );
 
         g2D.setFont(g2D.getFont().deriveFont(12.0f));
-
-        /*g2D.setColor(new Color(0.95f, 0.95f, 0.95f));
-        g2D.setFont(g2D.getFont().deriveFont(Font.BOLD));
-
-        Rectangle2D rect = new Rectangle2D.Double(
-                (int)dataPoints.get(highlightedUnit).getX() - g2D.getFontMetrics().stringWidth(value) - 10,
-                (int)dataPoints.get(highlightedUnit).getY() - g2D.getFontMetrics().getHeight() - 10,
-                g2D.getFontMetrics().stringWidth(value) + 10,
-                g2D.getFontMetrics().getHeight() + 10) ;
-
-
-        g2D.fill(rect);
-        g2D.setColor(Color.WHITE);
-        g2D.draw(rect);
-
-        g2D.setColor(Color.BLACK);
-        g2D.drawString(
-                value,
-                (int)dataPoints.get(highlightedUnit).getX() - g2D.getFontMetrics().stringWidth(value) - 5,
-                (int) dataPoints.get(highlightedUnit).getY() - 5
-        );*/
     }
 
     public void setHighlightedUnit(int mouseX, int mouseY){
@@ -710,9 +721,6 @@ public class ViewClicksGraph extends View {
             }
         }
     }
-
-    @Override
-    public void triggerPopup(int x, int y) {}
 
     @Override
     public String getIdentifier() {
