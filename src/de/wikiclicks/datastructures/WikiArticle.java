@@ -69,8 +69,9 @@ public class WikiArticle implements Serializable{
         return clickStatsPerDay.getOrDefault(dayString, null);
     }
 
-    public Long getMaxOfDay(String dayString){
-        Long max =0l;
+    public Map.Entry<String, Long> getMaxOfDay(String dayString){
+        Long max =0L;
+        Map.Entry<String, Long> maxPair = null;
         boolean found = false;
 
         for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
@@ -79,6 +80,7 @@ public class WikiArticle implements Serializable{
 
                 if(entry.getValue() > max){
                     max = entry.getValue();
+                    maxPair = entry;
                 }
             }
             else if(found){
@@ -86,11 +88,12 @@ public class WikiArticle implements Serializable{
             }
         }
 
-        return max;
+        return maxPair;
     }
 
-    public Long getMaxOfMonth(String monthString) {
+    public Map.Entry<String, Long> getMaxOfMonth(String monthString) {
         Long max = 0L;
+        Map.Entry<String, Long> maxPair = null;
 
         for(Map.Entry<String, Long> entry: clickStatsPerDay.entrySet()){
             if(entry.getKey().startsWith(monthString)){
@@ -98,11 +101,32 @@ public class WikiArticle implements Serializable{
 
                 if(clicksOnDay > max){
                     max = clicksOnDay;
+                    maxPair = entry;
+
                 }
             }
         }
 
-        return max;
+        return maxPair;
+    }
+
+    public Map.Entry<String, Long> getMinOfMonth(String monthString) {
+        Long min = Long.MAX_VALUE;
+        Map.Entry<String, Long> minPair = null;
+
+        for(Map.Entry<String, Long> entry: clickStatsPerDay.entrySet()){
+            if(entry.getKey().startsWith(monthString)){
+                Long clicksOnDay = getClicksOnDay(entry.getKey());
+
+                if(clicksOnDay < min){
+                    min = clicksOnDay;
+                    minPair = entry;
+
+                }
+            }
+        }
+
+        return minPair;
     }
 
     public Long getTotalClicks(){
@@ -110,6 +134,41 @@ public class WikiArticle implements Serializable{
 
         for(Map.Entry<String, Long> entry: clickStatsPerMonth.entrySet()){
             sum += entry.getValue();
+        }
+
+        return sum;
+    }
+
+    public Map.Entry<String, Long> getMinOfDay(String dayString){
+        Long min =Long.MAX_VALUE;
+        Map.Entry<String, Long> minPair = null;
+        boolean found = false;
+
+        for(Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
+            if(entry.getKey().startsWith(dayString)){
+                found = true;
+
+                if(entry.getValue() < min){
+                    min = entry.getValue();
+                    minPair = entry;
+                }
+            }
+            else if(found){
+                break;
+            }
+        }
+
+        return minPair;
+    }
+
+    public Long getTotalClicksDay(String date) {
+        Long sum = 0L;
+
+        for (Map.Entry<String, Long> entry: clickStatsPerHour.entrySet()){
+            if (entry.getKey().startsWith(date)) {
+                sum += entry.getValue();
+            }
+
         }
 
         return sum;
