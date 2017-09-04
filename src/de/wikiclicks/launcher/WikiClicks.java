@@ -9,6 +9,7 @@ import de.wikiclicks.parser.WikiParser;
 import de.wikiclicks.utils.Serializer;
 import de.wikiclicks.views.View;
 import de.wikiclicks.views.ViewClicksGraph;
+import de.wikiclicks.views.ViewSmallMultiples;
 import io.multimap.Callables;
 import org.rocksdb.RocksIterator;
 
@@ -104,6 +105,7 @@ public class WikiClicks {
         views = new ArrayList<>();
 
         views.add(initClicksGraphView());
+        views.add(initSmallMultiplesView());
         System.out.println("Done. "+views.size()+" views initialized.");
     }
 
@@ -195,6 +197,12 @@ public class WikiClicks {
         clicksGraph.addMouseMotionListener(controller);
 
         return clicksGraph;
+    }
+
+    private View initSmallMultiplesView(){
+        ViewSmallMultiples smallMultiples = new ViewSmallMultiples(entityHotnessIndex, wikiArticleStorage);
+
+        return smallMultiples;
     }
 
     public static void main(String[] args) {

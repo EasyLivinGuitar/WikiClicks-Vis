@@ -156,11 +156,6 @@ public class ViewClicksGraph extends View {
     }
 
     @Override
-    public Dimension getPreferredSize(){
-        return new Dimension(500, 500);
-    }
-
-    @Override
     public void paintComponents(Graphics g){
         super.paintComponents(g);
 
@@ -592,10 +587,6 @@ public class ViewClicksGraph extends View {
         y += fontSize;
         x += rectWidth + 4;
         g2D.drawString( " over 10%", (int) x, (int) y);
-
-
-
-
     }
 
     private void drawHighlighting(Graphics2D g2D){
@@ -767,7 +758,7 @@ public class ViewClicksGraph extends View {
 
     @Override
     public String getIdentifier() {
-        return "clicks-graph";
+        return "Clicks Graph";
     }
 
     @Override

@@ -62,7 +62,7 @@ public class WikiArticle implements Serializable{
     public int getNumDays(){ return clickStatsPerDay.size(); }
 
     public Long getClicksOnHour(String date){
-        return clickStatsPerHour.getOrDefault(date, null);
+        return clickStatsPerHour.getOrDefault(date, 0L);
     }
 
     public Long getClicksOnDay(String dayString){

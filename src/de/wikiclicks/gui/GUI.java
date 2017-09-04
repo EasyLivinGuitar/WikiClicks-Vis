@@ -38,8 +38,21 @@ public class GUI extends JFrame {
     }
 
     private void initUIComponents(){
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.setPreferredSize(new Dimension(200, getHeight()));
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = GridBagConstraints.PAGE_START;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 0.01;
+        gridBagConstraints.gridwidth = 1;
+        gridBagConstraints.insets = new Insets(10, 5, 0, 5);
+
+        buttonPanel.setPreferredSize(new Dimension(300, getHeight()));
 
         JButton articleSelectButton = new JButton("Select article");
         articleSelectButton.addActionListener(new ActionListener() {
@@ -50,7 +63,9 @@ public class GUI extends JFrame {
             }
         });
 
-        buttonPanel.add(articleSelectButton);
+        articleSelectButton.setPreferredSize(new Dimension(150, 30));
+
+        buttonPanel.add(articleSelectButton, gridBagConstraints);
 
         setGlassPane(articleSelectGUI);
 
@@ -67,13 +82,24 @@ public class GUI extends JFrame {
         list.setCellRenderer(new VisSelectRenderer());
 
         list.setFixedCellHeight(50);
-        list.setFixedCellWidth(200);
+//        list.setFixedCellWidth(200);
 
-        buttonPanel.add(list);
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 1;
+        gridBagConstraints.insets = new Insets(0, 0, 0, 0);
+        gridBagConstraints.weighty = 0.99;
+
+        buttonPanel.add(list, gridBagConstraints);
 
         buttonPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
-        add(buttonPanel, BorderLayout.WEST);
+//        add(buttonPanel, BorderLayout.WEST);
+
+        splitPane.setLeftComponent(buttonPanel);
+        splitPane.setRightComponent(cardPanel);
+
+        add(splitPane);
     }
 
     public void addView(View view){
