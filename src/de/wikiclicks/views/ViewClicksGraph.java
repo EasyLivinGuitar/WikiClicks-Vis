@@ -178,11 +178,11 @@ public class ViewClicksGraph extends View {
 
         if (!isDayView) {
             units = currentWikiArticle.getNumDays();
-            maxClicks = currentWikiArticle.getMaxOfMonth(displayedMonth);
+            maxClicks = currentWikiArticle.getMaxOfMonth(displayedMonth).getValue();
         }
         else{
             units = 24; //hours
-            maxClicks = currentWikiArticle.getMaxOfDay(displayedDay);
+            maxClicks = currentWikiArticle.getMaxOfDay(displayedDay).getValue();
         }
 
         drawBackground(g2D);
@@ -477,15 +477,115 @@ public class ViewClicksGraph extends View {
         String leastNews = least;
 
         if(!isDayView){
+
+            //news for the month
+            int totalNews = 0;
+
+            Long minNewsMonth = Long.MAX_VALUE;
+            Long maxNewsMonth = 0L;
+            Map.Entry<String, Set<NewsArticle>> maxNews = null;
+            Map.Entry<String, Set<NewsArticle>> minNews = null;
+
+            for(Map.Entry<String, Set<NewsArticle>> entity: currentNewsArticlesDay.entrySet()) {
+                totalNews += entity.getValue().size();
+                if (entity.getValue().size() > maxNewsMonth) {
+                    maxNewsMonth = Long.valueOf(entity.getValue().size());
+                    maxNews = entity;
+                }
+                else if (entity.getValue().size() < minNewsMonth) {
+                    minNewsMonth = Long.valueOf(entity.getValue().size());
+                    minNews = entity;
+                }
+            }
+
+
+
             captionColors = captionColors + " day (out of all)";
             clicks = clicks + " for this month: " + WikiClicks.globalSettings.currentArticle.getTotalClicks();
-            news = news + " for this month: ";
-            mostClicks = most + WikiClicks.globalSettings.currentArticle.getMaxOfMonth(displayedMonth);
+            news = news + " for this month: " + totalNews;
+            SimpleDateFormat dateFormatDay = new SimpleDateFormat("dd/MM/yyyy");
+            Date dateMax = null;
+            Date dateMin = null;
+            try {
+                dateMin = WikiClicks.globalSettings.dayFormat.parse(WikiClicks.globalSettings.currentArticle.getMinOfMonth(displayedMonth).getKey());
+                dateMax = WikiClicks.globalSettings.dayFormat.parse(WikiClicks.globalSettings.currentArticle.getMaxOfMonth(displayedMonth).getKey());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            mostClicks = most + WikiClicks.globalSettings.currentArticle.getMaxOfMonth(displayedMonth).getValue() + " on " + dateFormatDay.format(dateMax);
+            leastClicks = least + WikiClicks.globalSettings.currentArticle.getMinOfMonth(displayedMonth).getValue() + " on " + dateFormatDay.format(dateMin);
+
+            Date dateMaxNews = null;
+            Date dateMinNews = null;
+            try {
+                dateMinNews = WikiClicks.globalSettings.dayFormat.parse(minNews.getKey());
+                dateMaxNews = WikiClicks.globalSettings.dayFormat.parse(maxNews.getKey());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+
+            mostNews = most + maxNews.getValue().size() + " on " + dateFormatDay.format(dateMaxNews);
+            leastNews = least + minNews.getValue().size() + " on " + dateFormatDay.format(dateMinNews);
+
+
         }
         else{
+
+            //news for the day
+            int totalNews = 0;
+
+            Long minNewsDay = Long.MAX_VALUE;
+            Long maxNewsDay = 0L;
+            Map.Entry<String, Set<NewsArticle>> maxNews = null;
+            Map.Entry<String, Set<NewsArticle>> minNews = null;
+
+            for(Map.Entry<String, Set<NewsArticle>> entity: currentNewsArticlesHour.entrySet()) {
+                if (entity.getKey().startsWith(displayedDay)) {
+                    totalNews += entity.getValue().size();
+                    if (entity.getValue().size() > maxNewsDay) {
+                        maxNewsDay = Long.valueOf(entity.getValue().size());
+                        maxNews = entity;
+                    }
+                    else if (entity.getValue().size() < minNewsDay) {
+                        minNewsDay = Long.valueOf(entity.getValue().size());
+                        minNews = entity;
+                    }
+                }
+
+            }
+
             captionColors = captionColors + " hour (out of all)";
-            clicks = clicks + " for this day: ";
-            news = news + " for this day: ";
+            clicks = clicks + " for this day: " + WikiClicks.globalSettings.currentArticle.getTotalClicksDay(displayedDay);
+            news = news + " for this day: " + totalNews;
+
+            SimpleDateFormat dateFormatHour = new SimpleDateFormat("HH:mm");
+            Date dateMax = null;
+            Date dateMin = null;
+            try {
+                dateMin = WikiClicks.globalSettings.hourFormat.parse(WikiClicks.globalSettings.currentArticle.getMinOfDay(displayedDay).getKey());
+                dateMax = WikiClicks.globalSettings.hourFormat.parse(WikiClicks.globalSettings.currentArticle.getMaxOfDay(displayedDay).getKey());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            mostClicks = most + WikiClicks.globalSettings.currentArticle.getMaxOfDay(displayedDay).getValue() + " at " + dateFormatHour.format(dateMax);
+            leastClicks = least + WikiClicks.globalSettings.currentArticle.getMinOfDay(displayedDay).getValue() + " at " + dateFormatHour.format(dateMin);
+
+            Date dateMaxNews = null;
+            Date dateMinNews = null;
+            try {
+                dateMinNews = WikiClicks.globalSettings.hourFormat.parse(minNews.getKey());
+                dateMaxNews = WikiClicks.globalSettings.hourFormat.parse(maxNews.getKey());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+
+            mostNews = most + maxNews.getValue().size() + " on " + dateFormatHour.format(dateMaxNews);
+            leastNews = least + minNews.getValue().size() + " on " + dateFormatHour.format(dateMinNews);
+
         }
 
         x = legendField.getX() + 5;
