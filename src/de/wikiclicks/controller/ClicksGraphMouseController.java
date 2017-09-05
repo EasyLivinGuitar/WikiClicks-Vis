@@ -17,6 +17,7 @@ public class ClicksGraphMouseController implements MouseListener, MouseMotionLis
     public void mouseClicked(MouseEvent e) {
         view.setDayGraph(e.getX(), e.getY());
         view.changeDate(e.getX(), e.getY());
+        view.returnToMonth(e.getX(), e.getY());
     }
 
     @Override
