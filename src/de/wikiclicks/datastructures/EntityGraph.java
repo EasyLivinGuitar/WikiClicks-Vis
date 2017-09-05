@@ -12,7 +12,7 @@ import java.util.List;
 
 public class EntityGraph{
     private String date;
-    private NamedEntity entity;
+    private String entity;
 
     private Rectangle2D bounds;
     private Rectangle2D namedEntityArea;
@@ -30,7 +30,7 @@ public class EntityGraph{
     private Color hotnessColor = Color.RED;
     private Color clicksColor = Color.BLUE;
 
-    public EntityGraph(NamedEntity entity, String date){
+    public EntityGraph(String entity, String date){
         this.entity = entity;
         this.date = date;
 
@@ -55,10 +55,10 @@ public class EntityGraph{
 
         g2D.setFont(g2D.getFont().deriveFont(Font.BOLD));
 
-        int stringOffsetX = g2D.getFontMetrics().stringWidth(entity.getNamedEntity());
+        int stringOffsetX = g2D.getFontMetrics().stringWidth(entity);
         int stringOffsetY = g2D.getFontMetrics().getHeight();
 
-        g2D.drawString(entity.getNamedEntity(),
+        g2D.drawString(entity,
                 (int) namedEntityArea.getCenterX() - stringOffsetX / 2,
                 (int) namedEntityArea.getCenterY());
 
@@ -192,5 +192,9 @@ public class EntityGraph{
 
     public List<Integer> getClickValues() {
         return clickValues;
+    }
+
+    public String getEntity() {
+        return entity;
     }
 }

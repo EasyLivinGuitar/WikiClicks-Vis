@@ -1,6 +1,7 @@
 package de.wikiclicks.gui;
 
 import de.wikiclicks.gui.renderer.VisSelectRenderer;
+import de.wikiclicks.launcher.WikiClicks;
 import de.wikiclicks.views.View;
 
 import javax.swing.*;
@@ -10,6 +11,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class GUI extends JFrame {
@@ -18,6 +20,15 @@ public class GUI extends JFrame {
     private ArticleSelectGUI articleSelectGUI;
 
     private Set<String> viewIdentifier;
+//    private Set<String> namedEntityData;
+
+    private JList<String> namedEntityChoose;
+    private JList<String> namedEntitySelected;
+
+    private DefaultListModel<String> chooseModel;
+    private DefaultListModel<String> selectedModel;
+
+    private JScrollPane namedEntityPanel;
 
     public GUI(){
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -70,7 +81,7 @@ public class GUI extends JFrame {
         setGlassPane(articleSelectGUI);
 
         String[] items = viewIdentifier.toArray(new String[viewIdentifier.size()]);
-        JList list = new JList(items);
+        JList<String> list = new JList<>(items);
 
         list.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -82,7 +93,6 @@ public class GUI extends JFrame {
         list.setCellRenderer(new VisSelectRenderer());
 
         list.setFixedCellHeight(50);
-//        list.setFixedCellWidth(200);
 
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -94,12 +104,78 @@ public class GUI extends JFrame {
 
         buttonPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
-//        add(buttonPanel, BorderLayout.WEST);
-
         splitPane.setLeftComponent(buttonPanel);
         splitPane.setRightComponent(cardPanel);
 
         add(splitPane);
+
+        namedEntityChoose = new JList<>();
+        namedEntityChoose.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        namedEntityChoose.setModel(chooseModel);
+
+        namedEntityChoose.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                String selected = namedEntityChoose.getSelectedValue();
+                if(selected != null){
+                    selectedModel.addElement(selected);
+                    chooseModel.removeElement(selected);
+
+                    WikiClicks.globalSettings.selectNamedEntity(
+                            selected.substring(selected.indexOf(" "), selected.length()).trim());
+                }
+            }
+        });
+
+        namedEntityPanel = new JScrollPane(namedEntityChoose);
+        namedEntityPanel.createVerticalScrollBar();
+        namedEntityPanel.setPreferredSize(new Dimension(100, 300));
+        namedEntityPanel.setVisible(false);
+
+        gridBagConstraints.anchor = GridBagConstraints.PAGE_END;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.weighty = 0;
+        gridBagConstraints.insets = new Insets(0, 5, 10, 5);
+
+        buttonPanel.add(namedEntityPanel, gridBagConstraints);
+
+        namedEntitySelected = new JList<>();
+        namedEntitySelected.setVisible(false);
+        namedEntitySelected.setModel(selectedModel);
+
+        namedEntitySelected.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                String selected = namedEntitySelected.getSelectedValue();
+
+                if(selected != null){
+                    for(int i = 0; i < chooseModel.size(); i++){
+                        int hotnessChoose = Integer.parseInt(chooseModel.get(i).split("\\s+")[0]);
+
+                        int hotnessSelected = Integer.parseInt(selected.split("[ ]+")[0]);
+
+                        if(hotnessChoose < hotnessSelected){
+                            chooseModel.add(i, selected);
+                            break;
+                        }
+                    }
+                    selectedModel.removeElement(selected);
+
+                    selectedModel.trimToSize();
+
+                    WikiClicks.globalSettings.unselectNamedEntity(selected.substring(selected.indexOf(" "), selected.length()).trim());
+                }
+            }
+        });
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+
+        gridBagConstraints.insets = new Insets(0, 5, 20, 5);
+
+        buttonPanel.add(namedEntitySelected, gridBagConstraints);
     }
 
     public void addView(View view){
@@ -110,7 +186,6 @@ public class GUI extends JFrame {
         }
 
         cardPanel.add(view, view.getIdentifier());
-//        add(view);
     }
 
     @Override
@@ -120,8 +195,31 @@ public class GUI extends JFrame {
         System.out.println("Test");
     }
 
-    public void displayView(String identifier){
+    private void displayView(String identifier){
         cardLayout.show(cardPanel, identifier);
+
+        if(identifier.equals("Entity Hotness")){
+            namedEntityPanel.setVisible(true);
+            namedEntitySelected.setVisible(true);
+        }
+        else{
+            namedEntityPanel.setVisible(false);
+            namedEntitySelected.setVisible(false);
+        }
+    }
+
+    public void setNamedEntityData(Map<String, Integer> namedEntityData) {
+        chooseModel = new DefaultListModel<>();
+        selectedModel = new DefaultListModel<>();
+
+        for(Map.Entry<String, Integer> entry: namedEntityData.entrySet()){
+            if(WikiClicks.globalSettings.getSelectedNamedEntities().contains(entry.getKey())){
+                selectedModel.addElement(String.format("%-8d%s", entry.getValue(), entry.getKey()));
+            }
+            else{
+                chooseModel.addElement(String.format("%-8d%s", entry.getValue(), entry.getKey()));
+            }
+        }
     }
 
     public void start(){

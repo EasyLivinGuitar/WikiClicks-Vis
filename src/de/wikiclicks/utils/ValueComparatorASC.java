@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Comparator used for a <code>TreeMap</code> to sort by its values.
  */
-public class ValueComparator<K extends Comparable<K>, V  extends Comparable<V>>
+public class ValueComparatorASC<K extends Comparable<K>, V  extends Comparable<V>>
         implements Comparator<K> {
     private Map<K, V> map;
 
@@ -14,7 +14,7 @@ public class ValueComparator<K extends Comparable<K>, V  extends Comparable<V>>
      * Class constructor specifying the input map.
      * @param input map to sort
      */
-    public ValueComparator(Map<K, V> input) {
+    public ValueComparatorASC(Map<K, V> input) {
         map = input;
     }
 
@@ -23,3 +23,5 @@ public class ValueComparator<K extends Comparable<K>, V  extends Comparable<V>>
         return map.get(o1).compareTo(map.get(o2));
     }
 }
+
+

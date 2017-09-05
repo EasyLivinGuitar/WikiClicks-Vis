@@ -1,11 +1,17 @@
 package de.wikiclicks.views;
 
 import de.wikiclicks.datastructures.*;
+import de.wikiclicks.launcher.WikiClicks;
 import de.wikiclicks.utils.Serializer;
 import io.multimap.Callables;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -19,72 +25,124 @@ public class ViewSmallMultiples extends View{
     private Index<NamedEntity> entityHotnessIndex;
     private PersistentArticleStorage wikiArticleStorage;
 
+    private int hotnessMax;
+    private int clicksMax;
+
+    private Rectangle2D titleField;
+
+    private Image backwardIcon, forwardIcon;
+    private Rectangle2D backwardBounds, forwardBounds;
+
     public ViewSmallMultiples(Index<NamedEntity> entityHotnessIndex, PersistentArticleStorage wikiArticleStorage){
         this.wikiArticleStorage = wikiArticleStorage;
         this.entityHotnessIndex = entityHotnessIndex;
 
-        final int maxGraphs = 5;
-
         graphList = new ArrayList<>();
 
-        Set<NamedEntity> entities = entityHotnessIndex.get(displayedDay);
-        Iterator<NamedEntity> iterator = entities.iterator();
+        hotnessMax = 0;
+        clicksMax = 0;
 
-        int hotnessMax = 0;
-        int clicksMax = 0;
-
-        for(int i = 0; i < maxGraphs && iterator.hasNext(); i++){
-            NamedEntity topEntity = iterator.next();
-            WikiArticle article = wikiArticleStorage.get(topEntity.getNamedEntity());
-
-            EntityGraph graph = new EntityGraph(topEntity, displayedDay);
-
-            for(int hour = 0; hour < 24; hour++){
-                String currentDate = displayedDay + hour + "00";
-
-                Set<NamedEntity> namedEntitiesOnHour = entityHotnessIndex.getIf(currentDate,
-                        new Callables.Predicate() {
-                            @Override
-                            public boolean call(ByteBuffer bytes) {
-                                byte[] value  = new byte[bytes.remaining()];
-                                bytes.get(value);
-
-                                NamedEntity namedEntity = (NamedEntity) Serializer.deserialize(value);
-                                return namedEntity.equals(topEntity);
-                            }
-                        });
-
-                if(namedEntitiesOnHour.size() == 1){
-                    graph.addHotnessValue(namedEntitiesOnHour.iterator().next().getHotnessScore().intValue());
-                }
-                else if(namedEntitiesOnHour.size() == 0){
-                    graph.addHotnessValue(0);
-                }
-                else{
-                    System.out.println("ERROR");
-                }
-
-                if(article != null){
-                    graph.addClickValue(article.getClicksOnHour(currentDate).intValue());
-                }
-            }
-
-            if(hotnessMax < graph.getHotnessMax()){
-                hotnessMax = graph.getHotnessMax();
-            }
-
-            if(clicksMax < graph.getClicksMax()){
-                clicksMax = graph.getClicksMax();
-            }
-
-            graphList.add(graph);
+        for(String selectedNamedEntity: WikiClicks.globalSettings.getSelectedNamedEntities()){
+            initEntityGraph(selectedNamedEntity);
         }
 
+        titleField = new Rectangle2D.Double();
+
+        try {
+            backwardIcon = ImageIO.read(getClass().getResource("/icons/left-arrow.png"));
+            forwardIcon = ImageIO.read(getClass().getResource("/icons/right-arrow.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        backwardBounds = new Rectangle2D.Double();
+        forwardBounds = new Rectangle2D.Double();
+    }
+
+    private void initEntityGraph(String namedEntity){
+        EntityGraph entityGraph = new EntityGraph(namedEntity, displayedDay);
+
+        for(int hour = 0; hour < 24; hour++){
+            String currentDate = displayedDay + hour + "00";
+
+            Set<NamedEntity> namedEntitiesOnDate = entityHotnessIndex.getIf(currentDate, new Callables.Predicate() {
+                @Override
+                public boolean call(ByteBuffer bytes) {
+                    byte[] value  = new byte[bytes.remaining()];
+                    bytes.get(value);
+
+                    NamedEntity desNamedEntity = (NamedEntity) Serializer.deserialize(value);
+                    return desNamedEntity.getNamedEntity().equals(namedEntity);
+                }
+            });
+
+            if(namedEntitiesOnDate.size() == 0){
+                entityGraph.addHotnessValue(0);
+            }
+            else if(namedEntitiesOnDate.size() == 1){
+                entityGraph.addHotnessValue(namedEntitiesOnDate.iterator().next().getHotnessScore().intValue());
+            }
+
+            WikiArticle wikiArticle = wikiArticleStorage.get(namedEntity);
+
+            if(wikiArticle != null){
+                entityGraph.addClickValue(Math.toIntExact(wikiArticle.getClicksOnHour(currentDate)));
+            }
+        }
+
+        boolean updateMax = false;
+
+        if(entityGraph.getHotnessMax() > hotnessMax){
+            hotnessMax = entityGraph.getHotnessMax();
+            updateMax = true;
+        }
+
+        if(entityGraph.getClicksMax() > clicksMax){
+            clicksMax = entityGraph.getClicksMax();
+            updateMax = true;
+        }
+
+        if(updateMax){
+            updateMaxima();
+        }
+
+        entityGraph.setHotnessMax(hotnessMax);
+        entityGraph.setClicksMax(clicksMax);
+
+        graphList.add(entityGraph);
+    }
+
+    public void selectedEntitiesChanged(){
+        Set<String> selectedNamedEntities = WikiClicks.globalSettings.getSelectedNamedEntities();
+
+
+        if(selectedNamedEntities.size() > graphList.size()){
+            Iterator<String> iterator = selectedNamedEntities.iterator();
+            String lastElement = "";
+            while(iterator.hasNext()){
+                lastElement = iterator.next();
+            }
+
+            initEntityGraph(lastElement);
+        }
+        else{
+            for(EntityGraph graph: graphList){
+                if(!selectedNamedEntities.contains(graph.getEntity())){
+                    graphList.remove(graph);
+                    break;
+                }
+            }
+        }
+
+
+        repaint();
+    }
+
+    private void updateMaxima(){
         for(EntityGraph graph: graphList){
-            graph.setHotnessMax(hotnessMax);
             graph.setClicksMax(clicksMax);
+            graph.setHotnessMax(hotnessMax);
         }
-
     }
 
     @Override
@@ -93,12 +151,90 @@ public class ViewSmallMultiples extends View{
         g2D.clearRect(0, 0, getWidth(), getHeight());
         g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int marginX = (int) (getWidth() * 0.05);
-        int graphHeight = (int) (getHeight() * 0.17);
+        int margin = (int) (getWidth() * 0.08);
+        int spaceBetweenGraphs = 10;
+        int graphHeight = 0;
+
+        drawTitleField(g2D, margin);
+
+        if(graphList.size() > 0)
+            graphHeight = (int) ((getHeight() -  2 * margin - (graphList.size() - 1) * spaceBetweenGraphs) / graphList.size());
 
         for(EntityGraph graph: graphList){
-            graph.setBounds(marginX, marginX + (graphHeight + 10) * (graphList.indexOf(graph)), getWidth()* 0.9, graphHeight);
+            graph.setBounds(margin,
+                    margin + (graphHeight + spaceBetweenGraphs) * (graphList.indexOf(graph)),
+                    getWidth() - 2 * margin,
+                    graphHeight);
+
             graph.paint(g2D);
+        }
+    }
+
+    public void drawTitleField(Graphics2D g2D, int margin){
+        double width = (getWidth() - 2.0 * margin) * 0.6;
+        double height = margin * 0.5;
+
+        double x = getWidth() / 2 - width / 2;
+        double y = - height + 2 * margin / 3.0;
+
+        titleField.setRect(x, y, width, height);
+        g2D.setColor(Color.WHITE);
+        g2D.fill(titleField);
+        g2D.setColor(Color.BLACK);
+
+        g2D.draw(titleField);
+
+        String formattedDate = "";
+        SimpleDateFormat dateFormatOut = new SimpleDateFormat("dd/MM/yyyy");
+
+        try {
+            formattedDate = dateFormatOut.format(WikiClicks.globalSettings.dayFormat.parse(displayedDay));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        g2D.setFont(g2D.getFont().deriveFont(25.0f));
+
+        double stringOffsetX = g2D.getFontMetrics().stringWidth(formattedDate);
+        double stringOffsetY = g2D.getFontMetrics().getHeight();
+
+        x = titleField.getCenterX() - stringOffsetX / 2.0;
+        y = titleField.getCenterY() + stringOffsetY / 2.0;
+
+        g2D.drawString(formattedDate, (int)x , (int) y);
+        g2D.setFont(g2D.getFont().deriveFont(12.0f));
+
+        backwardBounds.setRect(x - 50, y - 23, 28, 28);
+
+        g2D.drawImage(
+                backwardIcon,
+                (int)backwardBounds.getX(),
+                (int)backwardBounds.getY() ,
+                (int)backwardBounds.getWidth(),
+                (int)backwardBounds.getHeight(),
+                Color.WHITE,
+                null);
+
+        forwardBounds.setRect(x + stringOffsetX + 50 - 28, (int) y - 23, 28, 28);
+
+        g2D.drawImage(
+                forwardIcon,
+                (int) forwardBounds.getX(),
+                (int) forwardBounds.getY(),
+                (int) forwardBounds.getWidth(),
+                (int) forwardBounds.getHeight(),
+                Color.WHITE,
+                null);
+    }
+
+    public void changeDay(int mouseX, int mouseY){
+        if(forwardBounds.contains(mouseX, mouseY)){
+            displayedDay = String.valueOf(Long.parseLong(displayedDay) + 1L);
+            repaint();
+        }
+        else if(backwardBounds.contains(mouseX, mouseY)){
+            displayedDay = String.valueOf(Long.parseLong(displayedDay) - 1L);
+            repaint();
         }
     }
 

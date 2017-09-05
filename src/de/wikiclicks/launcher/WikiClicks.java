@@ -1,23 +1,28 @@
 package de.wikiclicks.launcher;
 
 import de.wikiclicks.controller.ClicksGraphMouseController;
+import de.wikiclicks.controller.SmallMultiplesMouseController;
 import de.wikiclicks.datastructures.*;
 import de.wikiclicks.gui.GUI;
 import de.wikiclicks.listener.ArticleListener;
+import de.wikiclicks.listener.EntitySelectionListener;
 import de.wikiclicks.parser.NewsParser;
 import de.wikiclicks.parser.WikiParser;
 import de.wikiclicks.utils.Serializer;
+import de.wikiclicks.utils.ValueComparatorDESC;
 import de.wikiclicks.views.View;
 import de.wikiclicks.views.ViewClicksGraph;
 import de.wikiclicks.views.ViewSmallMultiples;
+import io.multimap.Callables;
 import org.rocksdb.RocksIterator;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.util.*;
 
 public class WikiClicks {
     private GUI gui;
@@ -27,10 +32,23 @@ public class WikiClicks {
     private Index<NewsArticle> newsEntityIndex;
     private Index<NamedEntity> entityHotnessIndex;
 
+    private Map<String, Integer> sortedNamedEntities;
+
     public static GlobalSettings globalSettings;
 
     private WikiClicks() {
         globalSettings = new GlobalSettings();
+
+        globalSettings.addListener(new EntitySelectionListener() {
+            @Override
+            public void entitySelectionChanged() {
+                for(View view: views){
+                    if(view instanceof ViewSmallMultiples){
+                        ((ViewSmallMultiples) view).selectedEntitiesChanged();
+                    }
+                }
+            }
+        });
     }
 
     private GUI initGUI() {
@@ -69,6 +87,8 @@ public class WikiClicks {
             }
         });
 
+        gui.setNamedEntityData(sortedNamedEntities);
+
         gui.initComponents();
 
         System.out.println("Done.");
@@ -90,7 +110,6 @@ public class WikiClicks {
         wikiArticleStorage = new PersistentArticleStorage("./data/wiki-article-storage");
 
         if(!wikiArticleStorage.isFilled()){
-//            System.out.println();
             File wikiDir = new File("/media/kipu5728/92e4d620-8187-4d97-a7bb-ecbe1408e352/corpora/corpus-wiki-pageview/filtered/2015/2015-09");
             WikiParser parser = new WikiParser();
 
@@ -147,6 +166,39 @@ public class WikiClicks {
         System.out.println("Index news article hotness...");
         entityHotnessIndex = parser.indexEntityHotness("./data/news-hotness-index", newsEntityIndex);
 
+        Map<String, Integer> namedEntities = new HashMap<>();
+
+        entityHotnessIndex.forEachKey(new Callables.Procedure() {
+            @Override
+            public void call(ByteBuffer bytes) {
+                String key = Charset.forName("UTF-8").decode(bytes).toString();
+
+                if(key.length() == 8){
+                    Set<NamedEntity> entities = entityHotnessIndex.get(key);
+
+                    for(NamedEntity entity: entities){
+                        namedEntities.put(entity.getNamedEntity(),
+                                (int) (namedEntities.getOrDefault(entity.getNamedEntity(), 0) + entity.getHotnessScore()));
+                    }
+                }
+            }
+        });
+
+        sortedNamedEntities = new TreeMap<>(new ValueComparatorDESC<>(namedEntities));
+        sortedNamedEntities.putAll(namedEntities);
+
+        int i = 0;
+        for(Map.Entry<String, Integer> entry: sortedNamedEntities.entrySet()){
+            globalSettings.getSelectedNamedEntities().add(entry.getKey());
+
+            if(i == 4){
+                break;
+            }
+
+            i++;
+        }
+
+
         System.out.println("Done. ");
     }
 
@@ -162,6 +214,10 @@ public class WikiClicks {
 
     private View initSmallMultiplesView(){
         ViewSmallMultiples smallMultiples = new ViewSmallMultiples(entityHotnessIndex, wikiArticleStorage);
+        SmallMultiplesMouseController controller = new SmallMultiplesMouseController(smallMultiples);
+
+        smallMultiples.addMouseListener(controller);
+        smallMultiples.addMouseMotionListener(controller);
 
         return smallMultiples;
     }

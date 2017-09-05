@@ -7,7 +7,7 @@ import de.wikiclicks.datastructures.NewsArticle;
 import de.wikiclicks.datastructures.PersistentArticleStorage;
 import de.wikiclicks.launcher.WikiClicks;
 import de.wikiclicks.utils.EntityExtractor;
-import de.wikiclicks.utils.ValueComparator;
+import de.wikiclicks.utils.ValueComparatorASC;
 import io.multimap.Callables;
 
 import java.io.BufferedReader;
@@ -135,7 +135,7 @@ public class NewsParser {
 
 
             for(Map.Entry<String, Map<String, Double>> topLevelEntry: hotnessIndex.entrySet()){
-                TreeMap<String, Double> sortedValueMap = new TreeMap<>(new ValueComparator<>(topLevelEntry.getValue()));
+                TreeMap<String, Double> sortedValueMap = new TreeMap<>(new ValueComparatorASC<>(topLevelEntry.getValue()));
                 sortedValueMap.putAll(topLevelEntry.getValue());
                 topLevelEntry.setValue(sortedValueMap);
 

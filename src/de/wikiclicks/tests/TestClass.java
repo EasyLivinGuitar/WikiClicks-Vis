@@ -1,7 +1,7 @@
 package de.wikiclicks.tests;
 
 import de.wikiclicks.datastructures.Index;
-import de.wikiclicks.utils.ValueComparator;
+import de.wikiclicks.utils.ValueComparatorASC;
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
@@ -39,7 +39,7 @@ public class TestClass extends TestCase{
         testMap.put("k3", 3);
         testMap.put("k2", 2);
 
-        Map<String, Integer> sortedMap = new TreeMap<>(new ValueComparator<>(testMap));
+        Map<String, Integer> sortedMap = new TreeMap<>(new ValueComparatorASC<>(testMap));
         sortedMap.putAll(testMap);
 
         Collection<Integer> expectedValues = new ArrayList<>(Arrays.asList(1, 2, 3));
