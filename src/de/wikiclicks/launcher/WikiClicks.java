@@ -10,15 +10,14 @@ import de.wikiclicks.utils.Serializer;
 import de.wikiclicks.views.View;
 import de.wikiclicks.views.ViewClicksGraph;
 import de.wikiclicks.views.ViewSmallMultiples;
-import io.multimap.Callables;
 import org.rocksdb.RocksIterator;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WikiClicks {
     private GUI gui;
@@ -28,26 +27,10 @@ public class WikiClicks {
     private Index<NewsArticle> newsEntityIndex;
     private Index<NamedEntity> entityHotnessIndex;
 
-    private Set<String> locationBlackList;
-
     public static GlobalSettings globalSettings;
 
     private WikiClicks() {
         globalSettings = new GlobalSettings();
-
-        locationBlackList = new HashSet<>();
-
-        for(String countryString: Locale.getISOCountries()){
-            Locale locale = new Locale("", countryString);
-
-            locationBlackList.add(locale.getDisplayCountry().toLowerCase());
-        }
-
-        for(String languageString: Locale.getISOLanguages()){
-            Locale locale = new Locale(languageString, "");
-
-            locationBlackList.add(locale.getDisplayLanguage().toLowerCase());
-        }
     }
 
     private GUI initGUI() {
@@ -61,14 +44,7 @@ public class WikiClicks {
         gui.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                if(wikiArticleStorage != null)
-                    wikiArticleStorage.close();
-
-                if(newsEntityIndex != null)
-                    newsEntityIndex.close();
-
-                if(entityHotnessIndex != null)
-                    entityHotnessIndex.close();
+                close();
             }
         });
 
@@ -171,26 +147,11 @@ public class WikiClicks {
         System.out.println("Index news article hotness...");
         entityHotnessIndex = parser.indexEntityHotness("./data/news-hotness-index", newsEntityIndex);
 
-        Set<NamedEntity> entities = entityHotnessIndex.getIf("20150901", new Callables.Predicate() {
-            @Override
-            public boolean call(ByteBuffer bytes) {
-                byte[] value  = new byte[bytes.remaining()];
-                bytes.get(value);
-
-                NamedEntity namedEntity = (NamedEntity) Serializer.deserialize(value);
-
-                return !locationBlackList.contains(namedEntity.getNamedEntity());
-            }
-        });
-
-        /*System.out.println("\nCleaning...");
-        newsEntityIndex.clean(wikiArticleStorage);*/
-
         System.out.println("Done. ");
     }
 
     private View initClicksGraphView(){
-        ViewClicksGraph clicksGraph = new ViewClicksGraph(wikiArticleStorage, newsEntityIndex);
+        ViewClicksGraph clicksGraph = new ViewClicksGraph(newsEntityIndex);
 
         ClicksGraphMouseController controller = new ClicksGraphMouseController(clicksGraph);
         clicksGraph.addMouseListener(controller);
@@ -203,6 +164,17 @@ public class WikiClicks {
         ViewSmallMultiples smallMultiples = new ViewSmallMultiples(entityHotnessIndex, wikiArticleStorage);
 
         return smallMultiples;
+    }
+
+    private void close(){
+        if(wikiArticleStorage != null)
+            wikiArticleStorage.close();
+
+        if(newsEntityIndex != null)
+            newsEntityIndex.close();
+
+        if(entityHotnessIndex != null)
+            entityHotnessIndex.close();
     }
 
     public static void main(String[] args) {

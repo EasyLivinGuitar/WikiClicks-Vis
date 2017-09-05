@@ -1,6 +1,9 @@
 package de.wikiclicks.views;
 
-import de.wikiclicks.datastructures.*;
+import de.wikiclicks.datastructures.DataPoint;
+import de.wikiclicks.datastructures.Index;
+import de.wikiclicks.datastructures.NewsArticle;
+import de.wikiclicks.datastructures.WikiArticle;
 import de.wikiclicks.launcher.WikiClicks;
 import de.wikiclicks.utils.DateComparator;
 import org.apache.commons.lang3.text.WordUtils;
@@ -23,7 +26,6 @@ import static java.awt.Font.PLAIN;
 
 
 public class ViewClicksGraph extends View {
-    private PersistentArticleStorage wikiArticleStorage;
     private Index<NewsArticle> newsEntityIndex;
 
     private WikiArticle currentWikiArticle;
@@ -56,12 +58,13 @@ public class ViewClicksGraph extends View {
 
     private Image backwardIcon, forwardIcon;
 
+    private Rectangle2D backwardBounds, forwardBounds;
+
 //    private JButton goBackwardsButton, goForwardButton;
 
-    public ViewClicksGraph(PersistentArticleStorage wikiArticleStorage, Index<NewsArticle> newsEntityIndex){
+    public ViewClicksGraph(Index<NewsArticle> newsEntityIndex){
         setLayout(new FlowLayout());
 
-        this.wikiArticleStorage = wikiArticleStorage;
         this.newsEntityIndex = newsEntityIndex;
 
         currentNewsArticlesDay = new TreeMap<>(new DateComparator(new SimpleDateFormat("yyyyMMdd").toPattern()));
@@ -102,22 +105,15 @@ public class ViewClicksGraph extends View {
 
         highlightedUnit = null;
 
-        /*goBackwardsButton = new JButton();
-        goBackwardsButton.setMargin(new Insets(0, 0, 0, 0));
-        goBackwardsButton.setBackground(new Color(0, 0, 0, 0) Color.BLACK);*/
-
         try {
             backwardIcon = ImageIO.read(getClass().getResource("/icons/left-arrow.png"));
             forwardIcon = ImageIO.read(getClass().getResource("/icons/right-arrow.png"));
-//            goBackwardsButton.setIcon(new ImageIcon(backwardIcon.getScaledInstance(25, 25, Image.SCALE_SMOOTH)));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-       /* goBackwardsButton.setVisible(true);
-        goBackwardsButton.setBounds(0, 0, 25, 25);
-
-        add(goBackwardsButton);*/
+        backwardBounds = new Rectangle2D.Double();
+        forwardBounds = new Rectangle2D.Double();
 
         initNewsArticles();
     }
@@ -156,13 +152,6 @@ public class ViewClicksGraph extends View {
     }
 
     @Override
-    public void paintComponents(Graphics g){
-        super.paintComponents(g);
-
-        System.out.println("PAINT COMPONENTS");
-    }
-
-    @Override
     public void paint(Graphics g){
         super.paint(g);
 
@@ -171,10 +160,10 @@ public class ViewClicksGraph extends View {
         g2D.clearRect(0, 0, getWidth(), getHeight());
 
 
-        float maxGraph = 0;
-        double stepWidth = 0;
-        int units = 0;
-        Long maxClicks = 0L;
+        float maxGraph;
+        double stepWidth;
+        int units;
+        Long maxClicks;
 
         if (!isDayView) {
             units = currentWikiArticle.getNumDays();
@@ -203,7 +192,6 @@ public class ViewClicksGraph extends View {
         g2D.setColor(Color.BLACK);
         g2D.setFont(g2D.getFont().deriveFont(10.0f));
 
-        /** y-axis labeling*/
         for(int i = 1; i <= 10; i++){
             int x = (int) yAxis.getX1();
             int y = (int) (yAxis.getY1() + (stepWidth *  i * scaling));
@@ -322,7 +310,7 @@ public class ViewClicksGraph extends View {
         g2D.setFont(font.deriveFont(PLAIN).deriveFont(25.0f));
 
         String formattedStartDate = "";
-        String formattedEndDate = "";
+        String formattedEndDate;
 
         if(!isDayView) {
             SimpleDateFormat dateFormatOut = new SimpleDateFormat("dd/MM/yyyy");
@@ -353,13 +341,29 @@ public class ViewClicksGraph extends View {
         g2D.drawString(dateString, (int) x, (int) y);
 
         if(isDayView){
-            g2D.drawImage(backwardIcon, (int)x - 50, (int) y - 23, 28, 28, Color.WHITE, null);
 
-            g2D.drawImage(forwardIcon, (int)x + stringOffset + 50 - 28, (int) y - 23, 28, 28, Color.WHITE, null);
+            backwardBounds.setRect(x - 50, y - 23, 28, 28);
+
+            g2D.drawImage(
+                    backwardIcon,
+                    (int)backwardBounds.getX(),
+                    (int)backwardBounds.getY() ,
+                    (int)backwardBounds.getWidth(),
+                    (int)backwardBounds.getHeight(),
+                    Color.WHITE,
+                    null);
+
+            forwardBounds.setRect(x + stringOffset + 50 - 28, (int) y - 23, 28, 28);
+
+            g2D.drawImage(
+                    forwardIcon,
+                    (int) forwardBounds.getX(),
+                    (int) forwardBounds.getY(),
+                    (int) forwardBounds.getWidth(),
+                    (int) forwardBounds.getHeight(),
+                    Color.WHITE,
+                    null);
         }
-
-
-//        goBackwardsButton.setBounds((int) x - 50, (int) y, 25, 25);
 
     }
 
@@ -403,7 +407,7 @@ public class ViewClicksGraph extends View {
         Rectangle2D currentRect = unitRects.get(unit - 1);
         currentRect.setRect(currentX, xAxis.getY1(), unitLength, graphBackground.getHeight() * 0.03);
 
-        double percentage = 0.0;
+        double percentage;
         if(numNewsArticles > 0){
             if(!isDayView) {
                 percentage = (double)(currentNewsArticlesDay.getOrDefault(currentDateString, new HashSet<>()).size())
@@ -489,11 +493,11 @@ public class ViewClicksGraph extends View {
             for(Map.Entry<String, Set<NewsArticle>> entity: currentNewsArticlesDay.entrySet()) {
                 totalNews += entity.getValue().size();
                 if (entity.getValue().size() > maxNewsMonth) {
-                    maxNewsMonth = Long.valueOf(entity.getValue().size());
+                    maxNewsMonth = (long) entity.getValue().size();
                     maxNews = entity;
                 }
                 else if (entity.getValue().size() < minNewsMonth) {
-                    minNewsMonth = Long.valueOf(entity.getValue().size());
+                    minNewsMonth = (long) entity.getValue().size();
                     minNews = entity;
                 }
             }
@@ -545,11 +549,11 @@ public class ViewClicksGraph extends View {
                 if (entity.getKey().startsWith(displayedDay)) {
                     totalNews += entity.getValue().size();
                     if (entity.getValue().size() > maxNewsDay) {
-                        maxNewsDay = Long.valueOf(entity.getValue().size());
+                        maxNewsDay = (long) entity.getValue().size();
                         maxNews = entity;
                     }
                     else if (entity.getValue().size() < minNewsDay) {
-                        minNewsDay = Long.valueOf(entity.getValue().size());
+                        minNewsDay = (long) entity.getValue().size();
                         minNews = entity;
                     }
                 }
@@ -745,10 +749,10 @@ public class ViewClicksGraph extends View {
 
         g2D.draw(infoBox);
 
-        String highlightedDate = "";
+        String highlightedDate;
         String formattedDate = "";
 
-        SimpleDateFormat outFormat = null;
+        SimpleDateFormat outFormat;
 
         if(!isDayView){
             highlightedDate = displayedMonth + String.format("%02d", highlightedUnit + 1);
@@ -854,6 +858,20 @@ public class ViewClicksGraph extends View {
                 }
             }
         }
+    }
+
+    public void changeDate(int mouseX, int mouseY){
+        if(isDayView){
+            if(forwardBounds.contains(mouseX, mouseY)){
+                displayedDay = String.valueOf(Long.parseLong(displayedDay) + 1L);
+                repaint();
+            }
+            else if(backwardBounds.contains(mouseX, mouseY)){
+                displayedDay = String.valueOf(Long.parseLong(displayedDay) - 1L);
+                repaint();
+            }
+        }
+
     }
 
     @Override
