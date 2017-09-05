@@ -56,9 +56,9 @@ public class ViewClicksGraph extends View {
 
     private int mouseX, mouseY;
 
-    private Image backwardIcon, forwardIcon;
+    private Image backwardIcon, forwardIcon, returnIcon;
 
-    private Rectangle2D backwardBounds, forwardBounds;
+    private Rectangle2D backwardBounds, forwardBounds, returnBounds;
 
 //    private JButton goBackwardsButton, goForwardButton;
 
@@ -108,12 +108,14 @@ public class ViewClicksGraph extends View {
         try {
             backwardIcon = ImageIO.read(getClass().getResource("/icons/left-arrow.png"));
             forwardIcon = ImageIO.read(getClass().getResource("/icons/right-arrow.png"));
+            returnIcon = ImageIO.read(getClass().getResource("/icons/up-arrow.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         backwardBounds = new Rectangle2D.Double();
         forwardBounds = new Rectangle2D.Double();
+        returnBounds = new Rectangle2D.Double();
 
         initNewsArticles();
     }
@@ -208,6 +210,7 @@ public class ViewClicksGraph extends View {
         }
 
         g2D.setFont(g2D.getFont().deriveFont(12.0f));
+
 
         for(int i = 1; i <= units; i++){
             Rectangle2D currentRect = drawUnitRect(g2D, i, unitLength);
@@ -361,6 +364,20 @@ public class ViewClicksGraph extends View {
                     (int) forwardBounds.getY(),
                     (int) forwardBounds.getWidth(),
                     (int) forwardBounds.getHeight(),
+                    Color.WHITE,
+                    null);
+
+            x = titleField.getCenterX() - stringOffset / 2 - 30;
+            y = titleField.getY() + 15;
+
+            returnBounds.setRect(x + 5, y + 2, 28, 28);
+
+            g2D.drawImage(
+                    returnIcon,
+                    (int) returnBounds.getX(),
+                    (int) returnBounds.getY(),
+                    (int) returnBounds.getWidth(),
+                    (int) returnBounds.getHeight(),
                     Color.WHITE,
                     null);
         }
@@ -872,6 +889,16 @@ public class ViewClicksGraph extends View {
             }
         }
 
+    }
+
+    public void returnToMonth(int mouseX, int mouseY){
+        if(isDayView) {
+            if(returnBounds.contains(mouseX, mouseY)){
+                isDayView = false;
+                System.out.print("should return");
+                repaint();
+            }
+        }
     }
 
     @Override
