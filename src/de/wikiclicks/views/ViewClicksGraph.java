@@ -407,6 +407,18 @@ public class ViewClicksGraph extends View {
 
         g2D.setStroke(new BasicStroke(0.5f));
 
+        String yAxisTitle = "Wiki-clicks";
+        String xAxisTitle;
+        if (isDayView) {
+            xAxisTitle = "Hour";
+        }
+        else xAxisTitle = "Day";
+
+        g2D.setFont(g2D.getFont().deriveFont(12.0f));
+
+        g2D.drawString(yAxisTitle, (int)yAxis.getX1() - 30, (int)yAxis.getY2() - 12);
+        g2D.drawString(xAxisTitle, (int)xAxis.getX2() + 10, (int)xAxis.getY2() + 12);
+
         g2D.draw(xAxis);
         g2D.draw(yAxis);
     }
