@@ -471,13 +471,21 @@ public class ViewClicksGraph extends View {
 
         if (isDayView) {
             unit -=1;
+            g2D.setFont(g2D.getFont().deriveFont(11.0f));
+            g2D.drawString(
+                    String.valueOf(unit) + ":00",
+                    (float)(currentX + unitLength / 3.0 - stringWidth / 2.0),
+                    (float) (xAxis.getY1() + graphBackground.getHeight() * 0.015 + stringHeight / 2.0)
+            );
+            g2D.setFont(g2D.getFont().deriveFont(12.0f));
         }
-
-        g2D.drawString(
-                String.valueOf(unit),
-                (float)(currentX + unitLength / 2.0 - stringWidth / 2.0),
-                (float) (xAxis.getY1() + graphBackground.getHeight() * 0.015 + stringHeight / 2.0)
-        );
+        else {
+            g2D.drawString(
+                    String.valueOf(unit),
+                    (float)(currentX + unitLength / 2.0 - stringWidth / 2.0),
+                    (float) (xAxis.getY1() + graphBackground.getHeight() * 0.015 + stringHeight / 2.0)
+            );
+        }
 
         return currentRect;
     }
