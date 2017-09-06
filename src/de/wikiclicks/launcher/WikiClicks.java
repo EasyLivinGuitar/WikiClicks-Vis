@@ -5,7 +5,7 @@ import de.wikiclicks.controller.SmallMultiplesMouseController;
 import de.wikiclicks.datastructures.*;
 import de.wikiclicks.gui.GUI;
 import de.wikiclicks.listener.ArticleListener;
-import de.wikiclicks.listener.EntitySelectionListener;
+import de.wikiclicks.listener.GlobalSettingsListener;
 import de.wikiclicks.parser.NewsParser;
 import de.wikiclicks.parser.WikiParser;
 import de.wikiclicks.utils.Serializer;
@@ -39,12 +39,21 @@ public class WikiClicks {
     private WikiClicks() {
         globalSettings = new GlobalSettings();
 
-        globalSettings.addListener(new EntitySelectionListener() {
+        globalSettings.addListener(new GlobalSettingsListener() {
             @Override
             public void entitySelectionChanged() {
                 for(View view: views){
                     if(view instanceof ViewSmallMultiples){
                         ((ViewSmallMultiples) view).selectedEntitiesChanged();
+                    }
+                }
+            }
+
+            @Override
+            public void splitToEntitiesChanged() {
+                for(View view: views){
+                    if(view instanceof ViewSmallMultiples){
+                        ((ViewSmallMultiples) view).setSplitIntoEntities(globalSettings.isSplitToEntities());
                     }
                 }
             }

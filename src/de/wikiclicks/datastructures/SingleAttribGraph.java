@@ -13,7 +13,7 @@ public class SingleAttribGraph extends Graph {
     private String attrib;
 
     private Map<String, List<Integer>> attribValues;
-    private static Map<String, Color> attribColors;
+    public static Map<String, Color> attribColors;
 
     private int maxGraph;
 

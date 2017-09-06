@@ -1,6 +1,6 @@
 package de.wikiclicks.datastructures;
 
-import de.wikiclicks.listener.EntitySelectionListener;
+import de.wikiclicks.listener.GlobalSettingsListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,8 +17,9 @@ public class GlobalSettings {
     public SimpleDateFormat monthFormat = new SimpleDateFormat("yyyyMM");
 
     private Set<String> selectedNamedEntities = new LinkedHashSet<>();
+    private boolean splitToEntities = true;
 
-    private List<EntitySelectionListener> settingsChangedListener;
+    private List<GlobalSettingsListener> settingsChangedListener;
 
     public GlobalSettings(){
         settingsChangedListener = new ArrayList<>();
@@ -27,7 +28,7 @@ public class GlobalSettings {
     public void selectNamedEntity(String namedEntity){
         selectedNamedEntities.add(namedEntity);
 
-        for(EntitySelectionListener listener: settingsChangedListener){
+        for(GlobalSettingsListener listener: settingsChangedListener){
             listener.entitySelectionChanged();
         }
     }
@@ -35,7 +36,7 @@ public class GlobalSettings {
     public void unselectNamedEntity(String namedEntity){
         selectedNamedEntities.remove(namedEntity);
 
-        for(EntitySelectionListener lister: settingsChangedListener){
+        for(GlobalSettingsListener lister: settingsChangedListener){
             lister.entitySelectionChanged();
         }
     }
@@ -44,7 +45,19 @@ public class GlobalSettings {
         return selectedNamedEntities;
     }
 
-    public void addListener(EntitySelectionListener listener){
+    public void addListener(GlobalSettingsListener listener){
         settingsChangedListener.add(listener);
+    }
+
+    public boolean isSplitToEntities() {
+        return splitToEntities;
+    }
+
+    public void setSplitToEntities(boolean splitToEntities) {
+        this.splitToEntities = splitToEntities;
+
+        for(GlobalSettingsListener listener: settingsChangedListener){
+            listener.splitToEntitiesChanged();
+        }
     }
 }

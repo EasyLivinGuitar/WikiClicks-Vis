@@ -1,5 +1,6 @@
 package de.wikiclicks.gui;
 
+import de.wikiclicks.datastructures.SingleAttribGraph;
 import de.wikiclicks.gui.renderer.VisSelectRenderer;
 import de.wikiclicks.launcher.WikiClicks;
 import de.wikiclicks.views.View;
@@ -10,6 +11,8 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +32,7 @@ public class GUI extends JFrame {
     private DefaultListModel<String> selectedModel;
 
     private JScrollPane namedEntityPanel;
+    private JCheckBox splitGraphByEntity;
 
     public GUI(){
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -135,7 +139,7 @@ public class GUI extends JFrame {
 
         gridBagConstraints.anchor = GridBagConstraints.PAGE_END;
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.weighty = 0;
         gridBagConstraints.insets = new Insets(0, 5, 10, 5);
 
@@ -170,12 +174,49 @@ public class GUI extends JFrame {
             }
         });
 
+        namedEntitySelected.setCellRenderer(new ListCellRenderer<String>() {
+            @Override
+            public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = new JLabel(value);
+                String namedEntity = value.substring(value.indexOf(" ")).trim();
+
+                if(!splitGraphByEntity.isSelected())
+                    label.setForeground(SingleAttribGraph.attribColors.get(namedEntity));
+                else
+                    label.setForeground(Color.BLACK);
+
+                return label;
+            }
+        });
+
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
 
         gridBagConstraints.insets = new Insets(0, 5, 20, 5);
 
         buttonPanel.add(namedEntitySelected, gridBagConstraints);
+
+        splitGraphByEntity = new JCheckBox("Split into entities");
+
+        splitGraphByEntity.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                WikiClicks.globalSettings.setSplitToEntities(splitGraphByEntity.isSelected());
+
+                if(namedEntitySelected.isVisible()){
+                    namedEntitySelected.setVisible(false);
+                    namedEntitySelected.setVisible(true);
+                }
+            }
+        });
+
+        splitGraphByEntity.setSelected(true);
+        splitGraphByEntity.setVisible(false);
+
+        gridBagConstraints.gridy = 2;
+
+        buttonPanel.add(splitGraphByEntity, gridBagConstraints);
+
     }
 
     public void addView(View view){
@@ -201,10 +242,12 @@ public class GUI extends JFrame {
         if(identifier.equals("Entity Hotness")){
             namedEntityPanel.setVisible(true);
             namedEntitySelected.setVisible(true);
+            splitGraphByEntity.setVisible(true);
         }
         else{
             namedEntityPanel.setVisible(false);
             namedEntitySelected.setVisible(false);
+            splitGraphByEntity.setVisible(false);
         }
     }
 

@@ -36,7 +36,7 @@ public class ViewSmallMultiples extends View{
     private Image backwardIcon, forwardIcon;
     private Rectangle2D backwardBounds, forwardBounds;
 
-    private boolean splitIntoEntities = false;
+    private boolean splitIntoEntities = true;
 
     public ViewSmallMultiples(Index<NamedEntity> entityHotnessIndex, PersistentArticleStorage wikiArticleStorage){
         this.wikiArticleStorage = wikiArticleStorage;
@@ -337,6 +337,11 @@ public class ViewSmallMultiples extends View{
         }
 
 
+        repaint();
+    }
+
+    public void setSplitIntoEntities(boolean splitIntoEntities) {
+        this.splitIntoEntities = splitIntoEntities;
         repaint();
     }
 
