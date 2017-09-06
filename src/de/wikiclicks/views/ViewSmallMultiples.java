@@ -36,7 +36,7 @@ public class ViewSmallMultiples extends View{
     private Image backwardIcon, forwardIcon;
     private Rectangle2D backwardBounds, forwardBounds;
 
-    private boolean splitIntoEntities = true;
+    private boolean splitIntoEntities = false;
 
     public ViewSmallMultiples(Index<NamedEntity> entityHotnessIndex, PersistentArticleStorage wikiArticleStorage){
         this.wikiArticleStorage = wikiArticleStorage;
@@ -46,6 +46,9 @@ public class ViewSmallMultiples extends View{
 
         hotnessMax = 0;
         clicksMax = 0;
+
+        hotnessGraph = new SingleAttribGraph();
+        clicksGraph = new SingleAttribGraph();
 
         for(String selectedNamedEntity: WikiClicks.globalSettings.getSelectedNamedEntities()){
             initEntityGraph(selectedNamedEntity);
@@ -63,8 +66,7 @@ public class ViewSmallMultiples extends View{
         backwardBounds = new Rectangle2D.Double();
         forwardBounds = new Rectangle2D.Double();
 
-        hotnessGraph = new SingleAttribGraph();
-        clicksGraph = new SingleAttribGraph();
+
     }
 
     private void initEntityGraph(String namedEntity){
@@ -139,6 +141,8 @@ public class ViewSmallMultiples extends View{
         else{
             for(EntityGraph graph: entityGraphList){
                 if(!selectedNamedEntities.contains(graph.getEntity())){
+                    clicksGraph.removeAttribValues(graph.getEntity());
+                    hotnessGraph.removeAttribValues(graph.getEntity());
                     entityGraphList.remove(graph);
                     break;
                 }
@@ -192,7 +196,7 @@ public class ViewSmallMultiples extends View{
                 graph.paint(g2D);
             }
         }else{
-            graphHeight = (int) (graphHeight - 2 * margin - spaceBetweenGraphs / 2.0);
+            graphHeight = (int) ((getHeight() - 2 * margin - spaceBetweenGraphs) / 2.0);
 
             hotnessGraph.setBounds(
                     margin,
@@ -274,10 +278,21 @@ public class ViewSmallMultiples extends View{
         g2D.setColor(Color.BLACK);
 
         if(!entityGraphList.isEmpty()){
-            double xScale = entityGraphList.get(0).getGraphArea().getX();
-            double yScale = entityGraphList.get(entityGraphList.size() - 1).getBounds().getMaxY() + 20.0;
+            double xScale;
+            double yScale;
 
-            double widthScale = entityGraphList.get(0).getGraphArea().getWidth();
+            double widthScale;
+
+            if(splitIntoEntities){
+                xScale = entityGraphList.get(0).getGraphArea().getX();
+                yScale = entityGraphList.get(entityGraphList.size() - 1).getBounds().getMaxY() + 20.0;
+                widthScale = entityGraphList.get(0).getGraphArea().getWidth();
+            }else{
+                xScale = hotnessGraph.getGraphArea().getX();
+                yScale = clicksGraph.getGraphArea().getMaxY() + 20;
+
+                widthScale = hotnessGraph.getGraphArea().getWidth();
+            }
 
             g2D.drawLine((int)xScale, (int)yScale, (int) (xScale + widthScale), (int)yScale);
             double scaleLength = widthScale / 24.0;

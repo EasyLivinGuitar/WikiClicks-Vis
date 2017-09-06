@@ -1,14 +1,14 @@
 package de.wikiclicks.utils;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 
-public class ColorSetter {
+public class ColorFactory {
 
     private static ArrayList<Color> colors = new ArrayList<>();
     private static ArrayList<Color> usedColors = new ArrayList<>();
 
-    public ColorSetter() {
+    private static void init() {
         colors.add(new Color(255, 16, 14));
         colors.add(new Color(21, 49, 255));
         colors.add(new Color(255, 221, 25));
@@ -23,6 +23,10 @@ public class ColorSetter {
     }
 
     public static Color getColor(){
+        if(colors.isEmpty()){
+            init();
+        }
+
         for (Color col: colors){
             if (!usedColors.contains(col)) {
                 usedColors.add(col);

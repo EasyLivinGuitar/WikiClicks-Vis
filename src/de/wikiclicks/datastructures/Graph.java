@@ -1,7 +1,12 @@
 package de.wikiclicks.datastructures;
 
+import org.apache.commons.math.util.MathUtils;
+
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class Graph {
@@ -19,5 +24,15 @@ public abstract class Graph {
         point.setCoord(dataX, dataY);
 
         return point;
+    }
+
+    protected int calcMaxGraph(Collection<Integer> values){
+        int max = Collections.max(values);
+        int roundPrecision = String.valueOf(max).length() - 2;
+        return (int) MathUtils.round(max, -roundPrecision, BigDecimal.ROUND_UP);
+    }
+
+    public Rectangle2D getGraphArea() {
+        return graphArea;
     }
 }

@@ -1,6 +1,7 @@
 Entity Hotness Graph:
     - Clicks und Hotness Anzeige: Position relative zur graphgröße
     - Fadenkreuz highlighting
+    - Locations rausfiltern?
 
 Clicks Graph:
     - Beschriftung der Achsen
