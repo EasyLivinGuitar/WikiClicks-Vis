@@ -98,7 +98,6 @@ public class NewsParser {
 
                 @Override
                 public void call(ByteBuffer bytes) {
-
                     String entity = Charset.forName("UTF-8").decode(bytes).toString();
 
                     for(NewsArticle article: entityIndex.get(entity)){
@@ -114,7 +113,6 @@ public class NewsParser {
                         String dateString = WikiClicks.globalSettings.hourFormat.format(date);
 
                         hotnessIndex.putIfAbsent(dateString, new HashMap<>());
-
                         hotnessIndex.get(dateString).put(
                                 entity, hotnessIndex.get(dateString).getOrDefault(entity, 0.0) + 1.0);
                     }
@@ -123,13 +121,6 @@ public class NewsParser {
                     if(i % 10000 == 0){
                         System.out.print("\rProcessed entities: "+i);
                     }
-                }
-            });
-
-            entityIndex.forEachKey(new Callables.Procedure() {
-                @Override
-                public void call(ByteBuffer bytes) {
-
                 }
             });
 

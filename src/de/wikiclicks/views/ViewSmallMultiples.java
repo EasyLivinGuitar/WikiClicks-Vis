@@ -73,7 +73,7 @@ public class ViewSmallMultiples extends View{
         EntityGraph entityGraph = new EntityGraph(namedEntity);
 
         for(int hour = 0; hour < 24; hour++){
-            String currentDate = displayedDay + hour + "00";
+            String currentDate = displayedDay + String.format("%02d", hour) + "00";
 
             Set<NamedEntity> namedEntitiesOnDate = entityHotnessIndex.getIf(currentDate, new Callables.Predicate() {
                 @Override
@@ -144,6 +144,7 @@ public class ViewSmallMultiples extends View{
                     clicksGraph.removeAttribValues(graph.getEntity());
                     hotnessGraph.removeAttribValues(graph.getEntity());
                     entityGraphList.remove(graph);
+                    updateGraphs();
                     break;
                 }
             }
@@ -165,6 +166,8 @@ public class ViewSmallMultiples extends View{
 
         hotnessMax = 0;
         clicksMax = 0;
+        hotnessGraph.resetMax();
+        clicksGraph.resetMax();
 
         for(String selectedNamedEntity: WikiClicks.globalSettings.getSelectedNamedEntities()){
             initEntityGraph(selectedNamedEntity);

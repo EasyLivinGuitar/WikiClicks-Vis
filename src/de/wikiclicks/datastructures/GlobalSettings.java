@@ -41,6 +41,10 @@ public class GlobalSettings {
         }
     }
 
+    public int getNumSelectedNamedEntities(){
+        return selectedNamedEntities.size();
+    }
+
     public Set<String> getSelectedNamedEntities(){
         return selectedNamedEntities;
     }

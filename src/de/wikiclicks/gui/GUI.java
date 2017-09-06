@@ -123,11 +123,13 @@ public class GUI extends JFrame {
             public void valueChanged(ListSelectionEvent e) {
                 String selected = namedEntityChoose.getSelectedValue();
                 if(selected != null){
-                    selectedModel.addElement(selected);
-                    chooseModel.removeElement(selected);
+                    if(WikiClicks.globalSettings.getNumSelectedNamedEntities() < 10){
+                        selectedModel.addElement(selected);
+                        chooseModel.removeElement(selected);
 
-                    WikiClicks.globalSettings.selectNamedEntity(
-                            selected.substring(selected.indexOf(" "), selected.length()).trim());
+                        WikiClicks.globalSettings.selectNamedEntity(
+                                selected.substring(selected.indexOf(" "), selected.length()).trim());
+                    }
                 }
             }
         });
@@ -180,7 +182,7 @@ public class GUI extends JFrame {
                 JLabel label = new JLabel(value);
                 String namedEntity = value.substring(value.indexOf(" ")).trim();
 
-                if(!splitGraphByEntity.isSelected())
+                if(splitGraphByEntity.isSelected())
                     label.setForeground(SingleAttribGraph.attribColors.get(namedEntity));
                 else
                     label.setForeground(Color.BLACK);
@@ -196,12 +198,12 @@ public class GUI extends JFrame {
 
         buttonPanel.add(namedEntitySelected, gridBagConstraints);
 
-        splitGraphByEntity = new JCheckBox("Split into entities");
+        splitGraphByEntity = new JCheckBox("Split into hotness and clicks");
 
         splitGraphByEntity.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
-                WikiClicks.globalSettings.setSplitToEntities(splitGraphByEntity.isSelected());
+                WikiClicks.globalSettings.setSplitToEntities(!splitGraphByEntity.isSelected());
 
                 if(namedEntitySelected.isVisible()){
                     namedEntitySelected.setVisible(false);
@@ -210,7 +212,7 @@ public class GUI extends JFrame {
             }
         });
 
-        splitGraphByEntity.setSelected(true);
+//        splitGraphByEntity.setSelected(true);
         splitGraphByEntity.setVisible(false);
 
         gridBagConstraints.gridy = 2;

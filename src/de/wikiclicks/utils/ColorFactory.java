@@ -14,10 +14,10 @@ public class ColorFactory {
         colors.add(new Color(255, 221, 25));
         colors.add(new Color(11, 145, 27));
         colors.add(new Color(105, 12, 255));
-        colors.add(new Color(239, 147, 150));
+        colors.add(new Color(239, 199, 196));
         colors.add(new Color(50, 255, 166));
         colors.add(new Color(241, 21, 255));
-        colors.add(new Color(255, 114, 12));
+        colors.add(new Color(255, 169, 49));
         colors.add(new Color(44, 255, 35));
 
     }

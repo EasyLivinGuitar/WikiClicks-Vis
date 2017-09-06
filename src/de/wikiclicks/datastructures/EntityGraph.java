@@ -35,6 +35,14 @@ public class EntityGraph extends Graph{
 
     @Override
     public void paint(Graphics2D g2D){
+        if(hotnessMax == 0){
+            hotnessMax = 1;
+        }
+
+        if(clicksMax == 0){
+            clicksMax = 1;
+        }
+
         g2D.setColor(new Color(250, 250, 250));
         g2D.fill(bounds);
         g2D.setColor(Color.BLACK);
@@ -82,6 +90,30 @@ public class EntityGraph extends Graph{
         double scalingX = graphArea.getWidth() / 24.0;
         double hotnessScaling = graphArea.getHeight() / hotnessMax;
         double clicksScaling = graphArea.getHeight() / clicksMax;
+
+        int numHelpLinesHot = hotnessMax / 100;
+        int numHelpLinesClicks = clicksMax / 1000;
+
+        g2D.setStroke(new BasicStroke(0.3f));
+        g2D.setColor(hotnessColor);
+
+        for(int i = 1; i <= numHelpLinesHot; i++){
+            g2D.drawLine(
+                    (int) graphArea.getX(),
+                    (int) (graphArea.getMaxY() - i * 100.0 * hotnessScaling),
+                    (int) graphArea.getMaxX(),
+                    (int) (graphArea.getMaxY() - i * 100.0 * hotnessScaling));
+        }
+
+        g2D.setColor(clicksColor);
+
+        for(int i = 1; i <= numHelpLinesClicks; i++){
+            g2D.drawLine(
+                    (int) graphArea.getX(),
+                    (int) (graphArea.getMaxY() - i * 1000.0 * clicksScaling),
+                    (int) graphArea.getMaxX(),
+                    (int) (graphArea.getMaxY() - i * 1000.0 * clicksScaling));
+        }
 
         for(int i = 0; i < 23; i++){
             DataPoint thisPoint = getDataPoint(i, scalingX, clicksScaling, clickValues);
