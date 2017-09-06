@@ -196,22 +196,50 @@ public class ViewSmallMultiples extends View{
                 graph.paint(g2D);
             }
         }else{
-            graphHeight = (int) ((getHeight() - 2 * margin - spaceBetweenGraphs) / 2.0);
+            graphHeight = (int) ((getHeight() - 3 * margin - spaceBetweenGraphs) / 2.0);
 
             hotnessGraph.setBounds(
                     margin,
-                    margin,
+                    margin + 4 * spaceBetweenGraphs,
                     getWidth() - 2 * margin,
                     graphHeight);
 
             clicksGraph.setBounds(
                     margin,
-                    margin + graphHeight + spaceBetweenGraphs,
+                    margin + graphHeight + 10 * spaceBetweenGraphs,
                     getWidth() - 2 * margin,
                     graphHeight);
 
             hotnessGraph.paint(g2D);
             clicksGraph.paint(g2D);
+
+            double width = (getWidth() - 2.0 * margin) * 0.15;
+            double height = margin * 0.4;
+
+            double x = clicksGraph.getGraphArea().getX();
+            double yHot = hotnessGraph.getGraphArea().getY() - height;
+            double yClick = clicksGraph.getGraphArea().getY() - height;
+
+            Rectangle2D titleHotness = new Rectangle2D.Double();
+            Rectangle2D titleClicks = new Rectangle2D.Double();
+
+            String hotness = "Hotness";
+            String clicks = "Wiki-Clicks";
+
+            titleHotness.setRect(x, yHot, width, height);
+            titleClicks.setRect(x, yClick,width, height);
+            g2D.setColor(Color.WHITE);
+            g2D.fill(titleHotness);
+            g2D.fill(titleClicks);
+            g2D.setColor(Color.BLACK);
+
+            g2D.draw(titleHotness);
+            g2D.draw(titleClicks);
+
+            g2D.setFont(g2D.getFont().deriveFont(25.0f));
+
+            g2D.drawString(hotness, (int)x + 5, (int) (yHot + 4 * height/5.0));
+            g2D.drawString(clicks, (int)x + 5, (int) (yClick + 4 * height/5.0));
         }
 
         drawScale(g2D);

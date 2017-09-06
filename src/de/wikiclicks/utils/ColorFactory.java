@@ -10,15 +10,15 @@ public class ColorFactory {
 
     private static void init() {
         colors.add(new Color(255, 16, 14));
-        colors.add(new Color(21, 49, 255));
+        colors.add(new Color(40, 136, 255));
         colors.add(new Color(255, 221, 25));
         colors.add(new Color(11, 145, 27));
         colors.add(new Color(105, 12, 255));
-        colors.add(new Color(239, 77, 84));
+        colors.add(new Color(239, 147, 150));
         colors.add(new Color(50, 255, 166));
         colors.add(new Color(241, 21, 255));
         colors.add(new Color(255, 114, 12));
-        colors.add(new Color(27, 12, 255));
+        colors.add(new Color(44, 255, 35));
 
     }
 
