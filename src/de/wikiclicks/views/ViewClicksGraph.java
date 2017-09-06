@@ -407,6 +407,18 @@ public class ViewClicksGraph extends View {
 
         g2D.setStroke(new BasicStroke(0.5f));
 
+        String yAxisTitle = "Wiki-clicks";
+        String xAxisTitle;
+        if (isDayView) {
+            xAxisTitle = "Hour";
+        }
+        else xAxisTitle = "Day";
+
+        g2D.setFont(g2D.getFont().deriveFont(12.0f));
+
+        g2D.drawString(yAxisTitle, (int)yAxis.getX1() - 30, (int)yAxis.getY2() - 12);
+        g2D.drawString(xAxisTitle, (int)xAxis.getX2() + 10, (int)xAxis.getY2() + 12);
+
         g2D.draw(xAxis);
         g2D.draw(yAxis);
     }
@@ -459,13 +471,21 @@ public class ViewClicksGraph extends View {
 
         if (isDayView) {
             unit -=1;
+            g2D.setFont(g2D.getFont().deriveFont(11.0f));
+            g2D.drawString(
+                    String.valueOf(unit) + ":00",
+                    (float)(currentX + unitLength / 3.0 - stringWidth / 2.0),
+                    (float) (xAxis.getY1() + graphBackground.getHeight() * 0.015 + stringHeight / 2.0)
+            );
+            g2D.setFont(g2D.getFont().deriveFont(12.0f));
         }
-
-        g2D.drawString(
-                String.valueOf(unit),
-                (float)(currentX + unitLength / 2.0 - stringWidth / 2.0),
-                (float) (xAxis.getY1() + graphBackground.getHeight() * 0.015 + stringHeight / 2.0)
-        );
+        else {
+            g2D.drawString(
+                    String.valueOf(unit),
+                    (float)(currentX + unitLength / 2.0 - stringWidth / 2.0),
+                    (float) (xAxis.getY1() + graphBackground.getHeight() * 0.015 + stringHeight / 2.0)
+            );
+        }
 
         return currentRect;
     }
