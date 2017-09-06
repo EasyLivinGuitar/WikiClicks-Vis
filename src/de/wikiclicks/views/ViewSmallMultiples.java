@@ -20,7 +20,10 @@ import java.util.Set;
 public class ViewSmallMultiples extends View{
     private String displayedDay = "20150901";
 
-    private List<EntityGraph> graphList;
+    private List<EntityGraph> entityGraphList;
+
+    private SingleAttribGraph hotnessGraph;
+    private SingleAttribGraph clicksGraph;
 
     private Index<NamedEntity> entityHotnessIndex;
     private PersistentArticleStorage wikiArticleStorage;
@@ -33,11 +36,13 @@ public class ViewSmallMultiples extends View{
     private Image backwardIcon, forwardIcon;
     private Rectangle2D backwardBounds, forwardBounds;
 
+    private boolean splitIntoEntities = true;
+
     public ViewSmallMultiples(Index<NamedEntity> entityHotnessIndex, PersistentArticleStorage wikiArticleStorage){
         this.wikiArticleStorage = wikiArticleStorage;
         this.entityHotnessIndex = entityHotnessIndex;
 
-        graphList = new ArrayList<>();
+        entityGraphList = new ArrayList<>();
 
         hotnessMax = 0;
         clicksMax = 0;
@@ -57,10 +62,13 @@ public class ViewSmallMultiples extends View{
 
         backwardBounds = new Rectangle2D.Double();
         forwardBounds = new Rectangle2D.Double();
+
+        hotnessGraph = new SingleAttribGraph();
+        clicksGraph = new SingleAttribGraph();
     }
 
     private void initEntityGraph(String namedEntity){
-        EntityGraph entityGraph = new EntityGraph(namedEntity, displayedDay);
+        EntityGraph entityGraph = new EntityGraph(namedEntity);
 
         for(int hour = 0; hour < 24; hour++){
             String currentDate = displayedDay + hour + "00";
@@ -109,14 +117,17 @@ public class ViewSmallMultiples extends View{
         entityGraph.setHotnessMax(hotnessMax);
         entityGraph.setClicksMax(clicksMax);
 
-        graphList.add(entityGraph);
+        hotnessGraph.addAttribValues(entityGraph.getEntity(), entityGraph.getHotnessValues());
+        clicksGraph.addAttribValues(entityGraph.getEntity(), entityGraph.getClickValues());
+
+        entityGraphList.add(entityGraph);
     }
 
     public void selectedEntitiesChanged(){
         Set<String> selectedNamedEntities = WikiClicks.globalSettings.getSelectedNamedEntities();
 
 
-        if(selectedNamedEntities.size() > graphList.size()){
+        if(selectedNamedEntities.size() > entityGraphList.size()){
             Iterator<String> iterator = selectedNamedEntities.iterator();
             String lastElement = "";
             while(iterator.hasNext()){
@@ -126,9 +137,9 @@ public class ViewSmallMultiples extends View{
             initEntityGraph(lastElement);
         }
         else{
-            for(EntityGraph graph: graphList){
+            for(EntityGraph graph: entityGraphList){
                 if(!selectedNamedEntities.contains(graph.getEntity())){
-                    graphList.remove(graph);
+                    entityGraphList.remove(graph);
                     break;
                 }
             }
@@ -139,9 +150,20 @@ public class ViewSmallMultiples extends View{
     }
 
     private void updateMaxima(){
-        for(EntityGraph graph: graphList){
+        for(EntityGraph graph: entityGraphList){
             graph.setClicksMax(clicksMax);
             graph.setHotnessMax(hotnessMax);
+        }
+    }
+
+    private void updateGraphs(){
+        entityGraphList.clear();
+
+        hotnessMax = 0;
+        clicksMax = 0;
+
+        for(String selectedNamedEntity: WikiClicks.globalSettings.getSelectedNamedEntities()){
+            initEntityGraph(selectedNamedEntity);
         }
     }
 
@@ -157,20 +179,41 @@ public class ViewSmallMultiples extends View{
 
         drawTitleField(g2D, margin);
 
-        if(graphList.size() > 0)
-            graphHeight = (int) ((getHeight() -  2 * margin - (graphList.size() - 1) * spaceBetweenGraphs) / graphList.size());
+        if(splitIntoEntities){
+            if(!entityGraphList.isEmpty())
+                graphHeight = (getHeight() -  2 * margin - (entityGraphList.size() - 1) * spaceBetweenGraphs) / entityGraphList.size();
 
-        for(EntityGraph graph: graphList){
-            graph.setBounds(margin,
-                    margin + (graphHeight + spaceBetweenGraphs) * (graphList.indexOf(graph)),
+            for(EntityGraph graph: entityGraphList){
+                graph.setBounds(margin,
+                        margin + (graphHeight + spaceBetweenGraphs) * (entityGraphList.indexOf(graph)),
+                        getWidth() - 2 * margin,
+                        graphHeight);
+
+                graph.paint(g2D);
+            }
+        }else{
+            graphHeight = (int) (graphHeight - 2 * margin - spaceBetweenGraphs / 2.0);
+
+            hotnessGraph.setBounds(
+                    margin,
+                    margin,
                     getWidth() - 2 * margin,
                     graphHeight);
 
-            graph.paint(g2D);
+            clicksGraph.setBounds(
+                    margin,
+                    margin + graphHeight + spaceBetweenGraphs,
+                    getWidth() - 2 * margin,
+                    graphHeight);
+
+            hotnessGraph.paint(g2D);
+            clicksGraph.paint(g2D);
         }
+
+        drawScale(g2D);
     }
 
-    public void drawTitleField(Graphics2D g2D, int margin){
+    private void drawTitleField(Graphics2D g2D, int margin){
         double width = (getWidth() - 2.0 * margin) * 0.6;
         double height = margin * 0.5;
 
@@ -227,15 +270,59 @@ public class ViewSmallMultiples extends View{
                 null);
     }
 
+    private void drawScale(Graphics2D g2D){
+        g2D.setColor(Color.BLACK);
+
+        if(!entityGraphList.isEmpty()){
+            double xScale = entityGraphList.get(0).getGraphArea().getX();
+            double yScale = entityGraphList.get(entityGraphList.size() - 1).getBounds().getMaxY() + 20.0;
+
+            double widthScale = entityGraphList.get(0).getGraphArea().getWidth();
+
+            g2D.drawLine((int)xScale, (int)yScale, (int) (xScale + widthScale), (int)yScale);
+            double scaleLength = widthScale / 24.0;
+
+            g2D.setFont(g2D.getFont().deriveFont(10.0f));
+
+            for(int i = 0; i < 25; i++){
+                int xLine = (int) (xScale + scaleLength * i);
+
+                g2D.drawLine(
+                        xLine,
+                        (int) yScale + 3,
+                        xLine,
+                        (int) (yScale - 3)
+                );
+
+                if(i < 24){
+                    String hour = i + ":00";
+                    int stringOffsetX = g2D.getFontMetrics().stringWidth(hour);
+                    int xString = (int) (xLine + 0.5 * scaleLength - stringOffsetX * 0.5);
+
+                    g2D.drawString(hour, xString, (int) (yScale + 3+ g2D.getFontMetrics().getHeight()));
+                }
+
+            }
+        }
+    }
+
     public void changeDay(int mouseX, int mouseY){
         if(forwardBounds.contains(mouseX, mouseY)){
-            displayedDay = String.valueOf(Long.parseLong(displayedDay) + 1L);
-            repaint();
+            if(Integer.valueOf(displayedDay.substring(6)) < 30){
+                displayedDay = String.valueOf(Long.parseLong(displayedDay) + 1L);
+                updateGraphs();
+            }
+
         }
         else if(backwardBounds.contains(mouseX, mouseY)){
-            displayedDay = String.valueOf(Long.parseLong(displayedDay) - 1L);
-            repaint();
+            if(Integer.valueOf(displayedDay.substring(6)) > 1) {
+                displayedDay = String.valueOf(Long.parseLong(displayedDay) - 1L);
+                updateGraphs();
+            }
         }
+
+
+        repaint();
     }
 
     @Override
@@ -244,7 +331,5 @@ public class ViewSmallMultiples extends View{
     }
 
     @Override
-    public void changeArticle(WikiArticle newArticle) {
-
-    }
+    public void changeArticle(WikiArticle newArticle) {}
 }

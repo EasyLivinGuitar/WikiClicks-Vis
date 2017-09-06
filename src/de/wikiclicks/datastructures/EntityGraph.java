@@ -10,13 +10,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class EntityGraph{
-    private String date;
+public class EntityGraph extends Graph{
     private String entity;
 
     private Rectangle2D bounds;
     private Rectangle2D namedEntityArea;
-    private Rectangle2D graphArea;
 
     private List<Integer> hotnessValues;
     private List<Integer> clickValues;
@@ -30,9 +28,8 @@ public class EntityGraph{
     private Color hotnessColor = Color.RED;
     private Color clicksColor = Color.BLUE;
 
-    public EntityGraph(String entity, String date){
+    public EntityGraph(String entity){
         this.entity = entity;
-        this.date = date;
 
         hotnessValues = new ArrayList<>(24);
         clickValues = new ArrayList<>(24);
@@ -41,6 +38,7 @@ public class EntityGraph{
         clicksTotal = 0;
     }
 
+    @Override
     public void paint(Graphics2D g2D){
         g2D.setColor(new Color(250, 250, 250));
         g2D.fill(bounds);
@@ -94,17 +92,20 @@ public class EntityGraph{
             DataPoint thisPoint = getDataPoint(i, scalingX, clicksScaling, clickValues);
             DataPoint nextPoint = getDataPoint(i + 1, scalingX, clicksScaling, clickValues);
 
+            g2D.setColor(Color.GRAY);
+            g2D.setStroke(new BasicStroke(0.3f));
+
+            g2D.drawLine((int)(thisPoint.getX() + scalingX / 2.0),
+                    (int)graphArea.getY(),
+                    (int)(thisPoint.getX() + scalingX / 2.0),
+                    (int)graphArea.getMaxY());
+
             g2D.setStroke(new BasicStroke(2.0f));
             g2D.setColor(clicksColor);
             g2D.drawLine((int)thisPoint.getX(), (int)thisPoint.getY(), (int) nextPoint.getX(), (int) nextPoint.getY());
 
-            /*g2D.setColor(clicksColor);
-            g2D.setStroke(new BasicStroke(25.0f));
-            g2D.drawLine((int)thisPoint.getX(), (int)thisPoint.getY(), (int)thisPoint.getX(), (int) bounds.getMaxY());*/
-
-            /*DataPoint*/ thisPoint = getDataPoint(i, scalingX, hotnessScaling, hotnessValues);
-            /*DataPoint */nextPoint = getDataPoint(i + 1, scalingX, hotnessScaling, hotnessValues);
-
+            thisPoint = getDataPoint(i, scalingX, hotnessScaling, hotnessValues);
+            nextPoint = getDataPoint(i + 1, scalingX, hotnessScaling, hotnessValues);
 
             g2D.setColor(hotnessColor);
             g2D.drawLine((int)thisPoint.getX(), (int)thisPoint.getY(), (int)nextPoint.getX(), (int) nextPoint.getY());
@@ -113,18 +114,6 @@ public class EntityGraph{
         }
 
         g2D.setStroke(new BasicStroke());
-    }
-
-    private DataPoint getDataPoint(int index , double scalingX, double scalingY, List<Integer> values){
-        DataPoint point = new DataPoint();
-        point.setValue(Long.valueOf(values.get(index)));
-
-        double dataX = scalingX * (index + 1) - scalingX / 2 + graphArea.getX();
-        double dataY = graphArea.getMaxY() - point.getValue() * scalingY;
-
-        point.setCoord(dataX, dataY);
-
-        return point;
     }
 
     public void addHotnessValue(int value){
@@ -196,5 +185,13 @@ public class EntityGraph{
 
     public String getEntity() {
         return entity;
+    }
+
+    public Rectangle2D getBounds() {
+        return bounds;
+    }
+
+    public Rectangle2D getGraphArea() {
+        return graphArea;
     }
 }
