@@ -15,6 +15,7 @@ public class SmallMultiplesMouseController implements MouseListener, MouseMotion
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        //Check for date change
         view.changeDay(e.getX(), e.getY());
     }
 
@@ -45,6 +46,7 @@ public class SmallMultiplesMouseController implements MouseListener, MouseMotion
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        //Move crosshairs
         view.updateCrosshair(e.getX(), e.getY());
     }
 }

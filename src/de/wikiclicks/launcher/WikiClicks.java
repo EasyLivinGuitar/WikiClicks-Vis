@@ -19,7 +19,7 @@ import org.rocksdb.RocksIterator;
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -172,8 +172,73 @@ public class WikiClicks {
         System.out.println("Index news article entities...");
         newsEntityIndex = parser.indexNewsEntities("./data/news-entity-index", wikiArticleStorage);
 
+        Set<String> publisherBlacklist = new HashSet<>();
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("./data/publisher.txt"));
+
+            String line;
+
+            while((line = reader.readLine()) != null){
+                publisherBlacklist.add(line);
+            }
+        } catch (FileNotFoundException e) {
+            newsEntityIndex.forEachKey(new Callables.Procedure() {
+                @Override
+                public void call(ByteBuffer bytes) {
+                    String key = Charset.forName("UTF-8").decode(bytes).toString();
+
+                    for(NewsArticle article: newsEntityIndex.get(key)){
+                        publisherBlacklist.add(article.getSource().toLowerCase());
+                    }
+                }
+            });
+
+            try {
+                PrintWriter writer = new PrintWriter(new FileWriter("./data/publisher.txt"));
+
+                for(String publisher: publisherBlacklist){
+                    writer.println(publisher);
+                }
+
+                writer.close();
+            } catch (IOException exc) {
+                exc.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         System.out.println("Index news article hotness...");
         entityHotnessIndex = parser.indexEntityHotness("./data/news-hotness-index", newsEntityIndex);
+
+        System.out.println("Get location blacklist...");
+        Set<String> locationBlacklist = new HashSet<>();
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader("./data/locations.txt"));
+            String line;
+
+            while((line = reader.readLine()) != null){
+                if(!line.isEmpty()){
+                    if(line.contains(",")){
+                        String[] split = line.split(",");
+
+                        for(String word: split){
+                            locationBlacklist.add(word.toLowerCase());
+                        }
+                    }
+                    else{
+                        locationBlacklist.add(line.toLowerCase());
+                    }
+                }
+            }
+
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         Map<String, Integer> namedEntities = new HashMap<>();
 
@@ -186,8 +251,9 @@ public class WikiClicks {
                     Set<NamedEntity> entities = entityHotnessIndex.get(key);
 
                     for(NamedEntity entity: entities){
-                        namedEntities.put(entity.getNamedEntity(),
-                                (int) (namedEntities.getOrDefault(entity.getNamedEntity(), 0) + entity.getHotnessScore()));
+                        if(!locationBlacklist.contains(entity.getNamedEntity()) && !publisherBlacklist.contains(entity.getNamedEntity()))
+                            namedEntities.put(entity.getNamedEntity(),
+                                    (int) (namedEntities.getOrDefault(entity.getNamedEntity(), 0) + entity.getHotnessScore()));
                     }
                 }
             }

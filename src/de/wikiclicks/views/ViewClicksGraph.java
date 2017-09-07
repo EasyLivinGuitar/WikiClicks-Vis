@@ -6,6 +6,7 @@ import de.wikiclicks.datastructures.NewsArticle;
 import de.wikiclicks.datastructures.WikiArticle;
 import de.wikiclicks.launcher.WikiClicks;
 import de.wikiclicks.utils.DateComparator;
+import de.wikiclicks.utils.Style;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.commons.math.util.MathUtils;
 
@@ -228,7 +229,7 @@ public class ViewClicksGraph extends View {
             }
             double dataY = dataPoint.getValue() * scaling + yAxis.getY1();
 
-            g2D.setStroke(new BasicStroke(2.0f));
+            g2D.setStroke(Style.STROKE_GRAPH);
 
             //Draw click function (points)
             dataPoint.setCoord(currentRect.getCenterX(), dataY);
@@ -259,7 +260,7 @@ public class ViewClicksGraph extends View {
 
             g2D.fill(centerEllipse);
             g2D.draw(centerEllipse);
-            g2D.setStroke(new BasicStroke(0.5f));
+            g2D.setStroke(Style.STROKE_GRAPH_OUTLINE);
         }
 
         drawLegend(g2D);
@@ -404,8 +405,6 @@ public class ViewClicksGraph extends View {
                 backgroundX + marginBTGX,
                 backgroundY + marginBTGY
         );
-
-        g2D.setStroke(new BasicStroke(0.5f));
 
         String yAxisTitle = "Wiki-clicks";
         String xAxisTitle;
@@ -732,13 +731,7 @@ public class ViewClicksGraph extends View {
 
     private void drawHighlighting(Graphics2D g2D){
         g2D.setColor(Color.GRAY);
-        g2D.setStroke(new BasicStroke(
-                0.5f,
-                BasicStroke.CAP_SQUARE,
-                BasicStroke.JOIN_MITER,
-                1,
-                new float[]{4.0f},
-                0));
+        g2D.setStroke(Style.STROKE_HIGHLIGHT);
 
         g2D.drawLine(
                 (int) dataPoints.get(highlightedUnit).getX(),
@@ -747,7 +740,7 @@ public class ViewClicksGraph extends View {
                 (int) xAxis.getY1()
         );
 
-        g2D.setStroke(new BasicStroke(1.0f));
+        g2D.setStroke(Style.STROKE_DEFAULT);
 
         if(highlightedUnit - 1 >= 0){
             double heightL = (dataPoints.get(highlightedUnit).getY() + dataPoints.get(highlightedUnit - 1).getY()) / 2.0;
@@ -773,7 +766,7 @@ public class ViewClicksGraph extends View {
 
         RoundRectangle2D infoBox;
 
-        if(highlightedUnit < 1) {
+        if(highlightedUnit <= 1) {
             infoBox = new RoundRectangle2D.Double(
                     dataPoints.get(highlightedUnit).getX() + unitRects.get(0).getWidth(),
                     yAxis.getY1() + (yAxis.getY2() - yAxis.getY1()) * 0.7 + unitRects.get(0).getHeight(),

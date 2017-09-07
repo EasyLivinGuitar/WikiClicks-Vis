@@ -1,5 +1,4 @@
 Entity Hotness Graph:
-    - Horizontale Hilfslinien
     - Locations rausfiltern?
 
 Clicks Graph:

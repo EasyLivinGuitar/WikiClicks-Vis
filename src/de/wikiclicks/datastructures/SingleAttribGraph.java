@@ -1,6 +1,7 @@
 package de.wikiclicks.datastructures;
 
 import de.wikiclicks.utils.ColorFactory;
+import de.wikiclicks.utils.Style;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -84,7 +85,7 @@ public class SingleAttribGraph extends Graph {
             numHelpLines = (int) (maxGraph / 1000.0);
         }
 
-        g2D.setStroke(new BasicStroke(0.3f));
+        g2D.setStroke(Style.STROKE_HELPLINES);
         for(int i = 1; i <= numHelpLines; i++){
             int y = 0;
 
@@ -97,7 +98,7 @@ public class SingleAttribGraph extends Graph {
 
             g2D.drawLine((int)getGraphArea().getX(), y, (int) getGraphArea().getMaxX(), y);
         }
-        g2D.setStroke(new BasicStroke());
+        g2D.setStroke(Style.STROKE_DEFAULT);
 
         for(Map.Entry<String, List<Integer>> entry: attribValues.entrySet()){
             for(int i = 0; i < entry.getValue().size() - 1; i++){
@@ -106,7 +107,7 @@ public class SingleAttribGraph extends Graph {
 
                 if(!drawnHelpLines){
                     g2D.setColor(Color.GRAY);
-                    g2D.setStroke(new BasicStroke(0.3f));
+                    g2D.setStroke(Style.STROKE_HELPLINES);
 
                     g2D.drawLine(
                             (int) (thisDataPoint.getX() + scalingX / 2.0),
@@ -116,7 +117,7 @@ public class SingleAttribGraph extends Graph {
                 }
 
 
-                g2D.setStroke(new BasicStroke(2.0f));
+                g2D.setStroke(Style.STROKE_GRAPH);
                 g2D.setColor(attribColors.getOrDefault(entry.getKey(), Color.BLACK));
                 g2D.drawLine(
                         (int) thisDataPoint.getX(),
@@ -128,7 +129,7 @@ public class SingleAttribGraph extends Graph {
             drawnHelpLines = true;
         }
 
-        g2D.setStroke(new BasicStroke());
+        g2D.setStroke(Style.STROKE_DEFAULT);
 
         String scaleMax = String.valueOf(maxGraph);
         int stringOffsetX = g2D.getFontMetrics().stringWidth(scaleMax);

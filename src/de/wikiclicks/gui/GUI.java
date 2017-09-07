@@ -23,7 +23,6 @@ public class GUI extends JFrame {
     private ArticleSelectGUI articleSelectGUI;
 
     private Set<String> viewIdentifier;
-//    private Set<String> namedEntityData;
 
     private JList<String> namedEntityChoose;
     private JList<String> namedEntitySelected;
@@ -33,6 +32,9 @@ public class GUI extends JFrame {
 
     private JScrollPane namedEntityPanel;
     private JCheckBox splitGraphByEntity;
+
+    private JLabel selectedView;
+    private JButton articleSelectButton;
 
     public GUI(){
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -46,6 +48,7 @@ public class GUI extends JFrame {
         articleSelectGUI = new ArticleSelectGUI();
 
         viewIdentifier = new LinkedHashSet<>();
+        selectedView = new JLabel();
     }
 
     public void initComponents(){
@@ -63,13 +66,14 @@ public class GUI extends JFrame {
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = GridBagConstraints.PAGE_START;
         gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.weighty = 0.01;
+        gridBagConstraints.weighty = 0.0;
         gridBagConstraints.gridwidth = 1;
-        gridBagConstraints.insets = new Insets(10, 5, 0, 5);
+        gridBagConstraints.insets = new Insets(10, 5, 5, 5);
 
         buttonPanel.setPreferredSize(new Dimension(300, getHeight()));
 
-        JButton articleSelectButton = new JButton("Select article");
+        articleSelectButton = new JButton("Select article");
+        articleSelectButton.setBackground(Color.LIGHT_GRAY);
         articleSelectButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -78,14 +82,26 @@ public class GUI extends JFrame {
             }
         });
 
-        articleSelectButton.setPreferredSize(new Dimension(150, 30));
-
-        buttonPanel.add(articleSelectButton, gridBagConstraints);
-
         setGlassPane(articleSelectGUI);
+
+        JLabel views = new JLabel("Views");
+        views.setFont(views.getFont().deriveFont(20.0f));
+        views.setOpaque(true);
+
+        buttonPanel.add(views, gridBagConstraints);
+
+        JSeparator separator = new JSeparator(JSeparator.HORIZONTAL);
+
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new Insets(0, 5, 5, 5);
+
+        buttonPanel.add(separator, gridBagConstraints);
 
         String[] items = viewIdentifier.toArray(new String[viewIdentifier.size()]);
         JList<String> list = new JList<>(items);
+
+        list.setSelectedIndex(0);
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         list.addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -96,13 +112,13 @@ public class GUI extends JFrame {
 
         list.setCellRenderer(new VisSelectRenderer());
 
+
         list.setFixedCellHeight(50);
 
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 1;
-        gridBagConstraints.insets = new Insets(0, 0, 0, 0);
-        gridBagConstraints.weighty = 0.99;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new Insets(0, 5, 0, 5);
+        gridBagConstraints.weighty = 1;
 
         buttonPanel.add(list, gridBagConstraints);
 
@@ -112,6 +128,24 @@ public class GUI extends JFrame {
         splitPane.setRightComponent(cardPanel);
 
         add(splitPane);
+
+        selectedView.setFont(views.getFont());
+
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.weighty = 0;
+        buttonPanel.add(selectedView, gridBagConstraints);
+
+        JSeparator buttonSeparator = new JSeparator(JSeparator.HORIZONTAL);
+
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new Insets(5, 5, 5, 5);
+        buttonPanel.add(buttonSeparator, gridBagConstraints);
+
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new Insets(0, 5, 420, 5);
+
+        buttonPanel.add(articleSelectButton, gridBagConstraints);
+
 
         namedEntityChoose = new JList<>();
         namedEntityChoose.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -141,7 +175,7 @@ public class GUI extends JFrame {
 
         gridBagConstraints.anchor = GridBagConstraints.PAGE_END;
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.weighty = 0;
         gridBagConstraints.insets = new Insets(0, 5, 10, 5);
 
@@ -192,7 +226,7 @@ public class GUI extends JFrame {
         });
 
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 7;
 
         gridBagConstraints.insets = new Insets(0, 5, 20, 5);
 
@@ -212,16 +246,17 @@ public class GUI extends JFrame {
             }
         });
 
-//        splitGraphByEntity.setSelected(true);
         splitGraphByEntity.setVisible(false);
 
-        gridBagConstraints.gridy = 2;
-
+        gridBagConstraints.gridy = 6;
         buttonPanel.add(splitGraphByEntity, gridBagConstraints);
-
     }
 
     public void addView(View view){
+        if(selectedView.getText().isEmpty()){
+            selectedView.setText(view.getIdentifier());
+        }
+
         viewIdentifier.add(view.getIdentifier());
 
         for(JComponent component: view.getUIComponents()){
@@ -231,25 +266,21 @@ public class GUI extends JFrame {
         cardPanel.add(view, view.getIdentifier());
     }
 
-    @Override
-    public void paintComponents(Graphics g){
-        super.paintComponents(g);
-
-        System.out.println("Test");
-    }
-
     private void displayView(String identifier){
+        selectedView.setText(identifier);
         cardLayout.show(cardPanel, identifier);
 
         if(identifier.equals("Entity Hotness")){
             namedEntityPanel.setVisible(true);
             namedEntitySelected.setVisible(true);
             splitGraphByEntity.setVisible(true);
+            articleSelectButton.setVisible(false);
         }
         else{
             namedEntityPanel.setVisible(false);
             namedEntitySelected.setVisible(false);
             splitGraphByEntity.setVisible(false);
+            articleSelectButton.setVisible(true);
         }
     }
 

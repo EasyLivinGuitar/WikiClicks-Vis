@@ -1,5 +1,6 @@
 package de.wikiclicks.datastructures;
 
+import de.wikiclicks.utils.Style;
 import de.wikiclicks.views.ViewSmallMultiples;
 
 import java.awt.*;
@@ -96,7 +97,7 @@ public class EntityGraph extends Graph{
         int numHelpLinesHot = hotnessMax / 100;
         int numHelpLinesClicks = clicksMax / 1000;
 
-        g2D.setStroke(new BasicStroke(0.3f));
+        g2D.setStroke(Style.STROKE_HELPLINES);
         g2D.setColor(hotnessColor);
 
         for(int i = 1; i <= numHelpLinesHot; i++){
@@ -122,14 +123,14 @@ public class EntityGraph extends Graph{
             DataPoint nextPoint = getDataPoint(i + 1, scalingX, clicksScaling, clickValues);
 
             g2D.setColor(Color.GRAY);
-            g2D.setStroke(new BasicStroke(0.3f));
+            g2D.setStroke(Style.STROKE_HELPLINES);
 
             g2D.drawLine((int)(thisPoint.getX() + scalingX / 2.0),
                     (int)graphArea.getY(),
                     (int)(thisPoint.getX() + scalingX / 2.0),
                     (int)graphArea.getMaxY());
 
-            g2D.setStroke(new BasicStroke(2.0f));
+            g2D.setStroke(Style.STROKE_GRAPH);
             g2D.setColor(clicksColor);
             g2D.drawLine((int)thisPoint.getX(), (int)thisPoint.getY(), (int) nextPoint.getX(), (int) nextPoint.getY());
 
@@ -161,7 +162,7 @@ public class EntityGraph extends Graph{
             g2D.drawString(String.valueOf(clicks), ViewSmallMultiples.crosshairX + 10, crosshairY);
         }
 
-        g2D.setStroke(new BasicStroke());
+        g2D.setStroke(Style.STROKE_DEFAULT);
     }
 
     public void addHotnessValue(int value){
