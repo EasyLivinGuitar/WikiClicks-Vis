@@ -124,27 +124,6 @@ public class Index<ValueType> {
     }
 
     public void clean(PersistentArticleStorage wikiArticleStorage){
-        /*final int[] deleted = {0};
-        final int[] remained = {0};
-
-        index.forEachKey(new Callables.Procedure() {
-            @Override
-            public void call(ByteBuffer bytes) {
-                String key = Charset.forName("UTF-8").decode(bytes).toString();
-
-                if(!wikiArticleStorage.containsTitle(key)){
-                    deleted[0]++;
-                    index.remove(key);
-                }
-                else{
-                    remained[0]++;
-                }
-            }
-        });
-
-        System.out.println("Deleted: "+deleted[0]);
-        System.out.println("Remained: "+remained[0]);*/
-
         try {
             Map.optimize(Paths.get(filesDir), Paths.get(filesDir,"optimized"));
         } catch (Exception e) {

@@ -26,6 +26,8 @@ public class EntityGraph extends Graph{
     private Color hotnessColor = Color.RED;
     private Color clicksColor = Color.BLUE;
 
+    private boolean drawValues;
+
     public EntityGraph(String entity){
         this.entity = entity;
 
@@ -155,11 +157,32 @@ public class EntityGraph extends Graph{
             int hotness = hotnessMax - (int) ((double)ViewSmallMultiples.crosshairY / hotnessScaling);
             int clicks = clicksMax - (int)((double)ViewSmallMultiples.crosshairY / clicksScaling);
 
+            /*g2D.setFont(g2D.getFont().deriveFont(8.f));
             stringOffsetX = g2D.getFontMetrics().stringWidth(String.valueOf(hotness));
             g2D.setColor(hotnessColor);
             g2D.drawString(String.valueOf(hotness), ViewSmallMultiples.crosshairX - stringOffsetX - 10, crosshairY);
             g2D.setColor(clicksColor);
-            g2D.drawString(String.valueOf(clicks), ViewSmallMultiples.crosshairX + 10, crosshairY);
+            g2D.drawString(String.valueOf(clicks), ViewSmallMultiples.crosshairX + 10, crosshairY);*/
+
+            int index = (int) ((ViewSmallMultiples.crosshairX - getGraphArea().getX()) / scalingX);
+
+            g2D.setFont(g2D.getFont().deriveFont(12.f));
+
+            if(index > 0 && index < hotnessValues.size()){
+                int hotnessValue = hotnessValues.get(index);
+                int clicksValue = clickValues.get(index);
+
+                int hotnessY = (int) (getGraphArea().getMaxY() -  hotnessValue * hotnessScaling);
+                int clicksY = (int)(getGraphArea().getMaxY() - clicksValue * clicksScaling);
+
+                stringOffsetX = g2D.getFontMetrics().stringWidth(String.valueOf(hotnessValue));
+                g2D.setColor(hotnessColor);
+                g2D.drawString(String.valueOf(hotnessValue), ViewSmallMultiples.crosshairX - stringOffsetX - 3, hotnessY);
+
+                g2D.setColor(clicksColor);
+                g2D.drawString(String.valueOf(clicksValue), ViewSmallMultiples.crosshairX + 3, clicksY);
+
+            }
         }
 
         g2D.setStroke(Style.STROKE_DEFAULT);
@@ -168,8 +191,6 @@ public class EntityGraph extends Graph{
     public void addHotnessValue(int value){
         hotnessValues.add(value);
         hotnessTotal += value;
-
-
     }
 
     public void addClickValue(int value){
@@ -236,8 +257,5 @@ public class EntityGraph extends Graph{
 
     public Rectangle2D getGraphArea() {
         return graphArea;
-    }
-
-    public void setDrawCrosshair(boolean drawCrosshair) {
     }
 }

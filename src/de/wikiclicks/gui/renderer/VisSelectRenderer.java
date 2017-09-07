@@ -21,7 +21,6 @@ public class VisSelectRenderer extends DefaultListCellRenderer {
         }
 
         label.setFont(label.getFont().deriveFont(Font.BOLD).deriveFont(20.0f));
-//        label.setFont(new Font("Lucida Blackletter", Font.BOLD,30));
 
         label.setBorder(BorderFactory.createMatteBorder(1, 5, 1, 1, Color.BLACK));
 

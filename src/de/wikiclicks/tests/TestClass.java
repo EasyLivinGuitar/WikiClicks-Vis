@@ -2,7 +2,7 @@ package de.wikiclicks.tests;
 
 import de.wikiclicks.datastructures.Index;
 import de.wikiclicks.utils.ValueComparatorASC;
-import junit.framework.TestCase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -10,7 +10,7 @@ import org.junit.runner.notification.Failure;
 
 import java.util.*;
 
-public class TestClass extends TestCase{
+public class TestClass {
     @Test
     public void testIndex(){
         Index<Integer> testIndex = new Index<>("./data/test-index");
@@ -27,7 +27,7 @@ public class TestClass extends TestCase{
         expectedValues.add(2);
         expectedValues.add(3);
 
-        assertEquals(testValues, expectedValues);
+        Assert.assertEquals(testValues, expectedValues);
         testIndex.close();
     }
 
@@ -44,7 +44,7 @@ public class TestClass extends TestCase{
 
         Collection<Integer> expectedValues = new ArrayList<>(Arrays.asList(1, 2, 3));
 
-        assertEquals(new ArrayList<>(sortedMap.values()), expectedValues);
+        Assert.assertEquals(new ArrayList<>(sortedMap.values()), expectedValues);
     }
 
     public static void main(String[] args) {
