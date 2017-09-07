@@ -4,6 +4,3 @@ Entity Hotness Graph:
     - Locations rausfiltern?
 
 Clicks Graph:
-    - Beschriftung der Achsen
-    - Highlight InfoBox Positionierung
-    - Tag Navigation begrenzen (1 - 30)

@@ -914,12 +914,16 @@ public class ViewClicksGraph extends View {
     public void changeDate(int mouseX, int mouseY){
         if(isDayView){
             if(forwardBounds.contains(mouseX, mouseY)){
-                displayedDay = String.valueOf(Long.parseLong(displayedDay) + 1L);
-                repaint();
+                if(Integer.valueOf(displayedDay.substring(6)) < 30) {
+                    displayedDay = String.valueOf(Long.parseLong(displayedDay) + 1L);
+                    repaint();
+                }
             }
             else if(backwardBounds.contains(mouseX, mouseY)){
-                displayedDay = String.valueOf(Long.parseLong(displayedDay) - 1L);
-                repaint();
+                if(Integer.valueOf(displayedDay.substring(6)) > 1) {
+                    displayedDay = String.valueOf(Long.parseLong(displayedDay) - 1L);
+                    repaint();
+                }
             }
         }
 
