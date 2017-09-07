@@ -45,6 +45,6 @@ public class SmallMultiplesMouseController implements MouseListener, MouseMotion
 
     @Override
     public void mouseMoved(MouseEvent e) {
-
+        view.updateCrosshair(e.getX(), e.getY());
     }
 }

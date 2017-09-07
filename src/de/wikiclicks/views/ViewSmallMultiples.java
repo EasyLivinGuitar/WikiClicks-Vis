@@ -38,6 +38,11 @@ public class ViewSmallMultiples extends View{
 
     private boolean splitIntoEntities = true;
 
+    private int margin, spaceBetweenGraphs;
+
+    public static boolean drawCrosshair = false;
+    public static int crosshairX, crosshairY;
+
     public ViewSmallMultiples(Index<NamedEntity> entityHotnessIndex, PersistentArticleStorage wikiArticleStorage){
         this.wikiArticleStorage = wikiArticleStorage;
         this.entityHotnessIndex = entityHotnessIndex;
@@ -47,8 +52,8 @@ public class ViewSmallMultiples extends View{
         hotnessMax = 0;
         clicksMax = 0;
 
-        hotnessGraph = new SingleAttribGraph();
-        clicksGraph = new SingleAttribGraph();
+        hotnessGraph = new SingleAttribGraph("hotness");
+        clicksGraph = new SingleAttribGraph("clicks");
 
         for(String selectedNamedEntity: WikiClicks.globalSettings.getSelectedNamedEntities()){
             initEntityGraph(selectedNamedEntity);
@@ -180,8 +185,8 @@ public class ViewSmallMultiples extends View{
         g2D.clearRect(0, 0, getWidth(), getHeight());
         g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int margin = (int) (getWidth() * 0.08);
-        int spaceBetweenGraphs = 10;
+        margin = (int) (getWidth() * 0.08);
+        spaceBetweenGraphs = 10;
         int graphHeight = 0;
 
         drawTitleField(g2D, margin);
@@ -383,4 +388,32 @@ public class ViewSmallMultiples extends View{
 
     @Override
     public void changeArticle(WikiArticle newArticle) {}
+
+    public void updateCrosshair(int x, int y) {
+        if(splitIntoEntities)
+        if(x > margin && x < getWidth() - margin && y > margin && y < getHeight() - margin){
+            int numGraphs = entityGraphList.size();
+            double graphHeight = entityGraphList.get(0).getBounds().getHeight();
+
+            int index = (int) ((y - margin) / (graphHeight + spaceBetweenGraphs));
+            if(index >= 0 && index < numGraphs){
+
+                if(entityGraphList.get(index).getGraphArea().contains(x, y)){
+                    drawCrosshair = true;
+
+                    crosshairX = x;
+                    crosshairY = (int) (y - entityGraphList.get(index).getGraphArea().getY());
+
+                    repaint();
+                }
+            }
+        }
+        else{
+            if(drawCrosshair){
+                drawCrosshair = false;
+                repaint();
+            }
+
+        }
+    }
 }

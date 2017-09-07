@@ -1,5 +1,7 @@
 package de.wikiclicks.datastructures;
 
+import de.wikiclicks.views.ViewSmallMultiples;
+
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -69,7 +71,7 @@ public class EntityGraph extends Graph{
         g2D.setColor(hotnessColor);
         g2D.drawString(totalHotness,
                 (int) (namedEntityArea.getX() + 5),
-                (int)namedEntityArea.getMaxY() - 5);
+                (int) (namedEntityArea.getMaxY() - namedEntityArea.getHeight() * 0.05));
 
         stringOffsetX = g2D.getFontMetrics().stringWidth(String.valueOf(hotnessMax));
         g2D.drawString(String.valueOf(hotnessMax),
@@ -84,7 +86,7 @@ public class EntityGraph extends Graph{
         String totalClicks = "clicks: "+String.valueOf(clicksTotal);
         g2D.drawString(totalClicks,
                 (int) namedEntityArea.getX() + 5,
-                (int) namedEntityArea.getMaxY() - 10 - stringOffsetY);
+                (int) (namedEntityArea.getMaxY() - namedEntityArea.getHeight() * 0.05 - stringOffsetY));
 
 
         double scalingX = graphArea.getWidth() / 24.0;
@@ -138,6 +140,25 @@ public class EntityGraph extends Graph{
             g2D.drawLine((int)thisPoint.getX(), (int)thisPoint.getY(), (int)nextPoint.getX(), (int) nextPoint.getY());
 
 
+        }
+
+        g2D.setStroke(new BasicStroke(1.5f));
+        g2D.setColor(Color.BLACK);
+
+        if(ViewSmallMultiples.drawCrosshair){
+            int crosshairY = (int) (ViewSmallMultiples.crosshairY + bounds.getY());
+            g2D.drawLine(
+                    ViewSmallMultiples.crosshairX, (int)graphArea.getY(), ViewSmallMultiples.crosshairX, (int)graphArea.getMaxY());
+            g2D.drawLine((int) graphArea.getX(), crosshairY, (int)graphArea.getMaxX(), crosshairY);
+
+            int hotness = hotnessMax - (int) ((double)ViewSmallMultiples.crosshairY / hotnessScaling);
+            int clicks = clicksMax - (int)((double)ViewSmallMultiples.crosshairY / clicksScaling);
+
+            stringOffsetX = g2D.getFontMetrics().stringWidth(String.valueOf(hotness));
+            g2D.setColor(hotnessColor);
+            g2D.drawString(String.valueOf(hotness), ViewSmallMultiples.crosshairX - stringOffsetX - 10, crosshairY);
+            g2D.setColor(clicksColor);
+            g2D.drawString(String.valueOf(clicks), ViewSmallMultiples.crosshairX + 10, crosshairY);
         }
 
         g2D.setStroke(new BasicStroke());
@@ -214,5 +235,8 @@ public class EntityGraph extends Graph{
 
     public Rectangle2D getGraphArea() {
         return graphArea;
+    }
+
+    public void setDrawCrosshair(boolean drawCrosshair) {
     }
 }

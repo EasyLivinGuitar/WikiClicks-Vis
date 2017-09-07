@@ -17,12 +17,14 @@ public class SingleAttribGraph extends Graph {
 
     private int maxGraph;
 
-    public SingleAttribGraph(){
+    public SingleAttribGraph(String attrib){
         attribValues = new LinkedHashMap<>();
         attribColors = new HashMap<>();
 
         graphArea = new Rectangle2D.Double();
         maxGraph = 0;
+
+        this.attrib = attrib;
     }
 
     public void addAttribValues(String namedEntity, List<Integer> attribValues){
@@ -73,6 +75,29 @@ public class SingleAttribGraph extends Graph {
 
         double scalingX = graphArea.getWidth() / 24.0;
         double scalingY = graphArea.getHeight() / maxGraph;
+
+        int numHelpLines = 0;
+
+        if(attrib.equals("hotness")){
+            numHelpLines = (int) (maxGraph / 100.0);
+        }else if(attrib.equals("clicks")){
+            numHelpLines = (int) (maxGraph / 1000.0);
+        }
+
+        g2D.setStroke(new BasicStroke(0.3f));
+        for(int i = 1; i <= numHelpLines; i++){
+            int y = 0;
+
+            if(attrib.equals("hotness")){
+                y = (int) (graphArea.getMaxY() - i * 100 * scalingY);
+            }
+            else if(attrib.equals("clicks")){
+                y = (int) (graphArea.getMaxY() - i * 1000 * scalingY);
+            }
+
+            g2D.drawLine((int)getGraphArea().getX(), y, (int) getGraphArea().getMaxX(), y);
+        }
+        g2D.setStroke(new BasicStroke());
 
         for(Map.Entry<String, List<Integer>> entry: attribValues.entrySet()){
             for(int i = 0; i < entry.getValue().size() - 1; i++){
