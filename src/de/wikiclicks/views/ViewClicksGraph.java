@@ -771,15 +771,29 @@ public class ViewClicksGraph extends View {
             );
         }
 
+        RoundRectangle2D infoBox;
 
-        RoundRectangle2D infoBox = new RoundRectangle2D.Double(
-                dataPoints.get(highlightedUnit).getX() - 150.0 - unitRects.get(0).getWidth(),
-                mouseY,
-                150.0,
-                160.0,
-                5.0,
-                5.0
-        );
+        if(highlightedUnit < 1) {
+            infoBox = new RoundRectangle2D.Double(
+                    dataPoints.get(highlightedUnit).getX() + unitRects.get(0).getWidth(),
+                    yAxis.getY1() + (yAxis.getY2() - yAxis.getY1()) * 0.7 + unitRects.get(0).getHeight(),
+                    150.0,
+                    160.0,
+                    5.0,
+                    5.0
+            );
+        }
+        else {
+            infoBox = new RoundRectangle2D.Double(
+                    dataPoints.get(highlightedUnit).getX() - 150.0 - unitRects.get(0).getWidth(),
+                    yAxis.getY1() + (yAxis.getY2() - yAxis.getY1()) * 0.7 + unitRects.get(0).getHeight(),
+                    150.0,
+                    160.0,
+                    5.0,
+                    5.0
+            );
+        }
+
 
         g2D.setColor(new Color(30, 30, 30, 230));
         g2D.fill(infoBox);
